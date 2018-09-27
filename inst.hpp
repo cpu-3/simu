@@ -1,4 +1,4 @@
-enum struct Inst {
+enum struct Inst : uint8_t {
     LUI     = 0b0110111,
     AUIPC   = 0b0010111,
     JAL     = 0b1101111,
@@ -13,7 +13,7 @@ enum struct Inst {
     EBREAK  = 0b1110011,
 };
 
-enum struct ALUI_Inst {
+enum struct ALUI_Inst : uint8_t{
     ADDI  = 0b000,
     SLTI  = 0b010,    
     SLTIU = 0b011,    
@@ -24,12 +24,12 @@ enum struct ALUI_Inst {
     SRL_LA  = 0b101,    
 };
 
-enum struct ALUI_SRL_Inst {
+enum struct ALUI_SRL_Inst : uint8_t {
     SRLI = 0b0000000,
     SRAI = 0b0100000,
 };
 
-enum struct ALU_Inst {
+enum struct ALU_Inst : uint8_t{
     ADD_SUB = 0,
     SLL,
     SLT,
@@ -40,17 +40,17 @@ enum struct ALU_Inst {
     AND,
 };
 
-enum struct ALU_ADD_SUB_Inst {
+enum struct ALU_ADD_SUB_Inst : uint8_t {
     ADD = 0b0000000,
     SUB = 0b0100000,
 };
 
-enum struct ALU_SR_Inst {
+enum struct ALU_SR_Inst : uint8_t {
     SRL = 0b0000000,
     SRA = 0b0100000,
 };
 
-enum struct Branch_Inst {
+enum struct Branch_Inst : uint8_t {
     BEQ     = 0b000,
     BNE     = 0b001,
     BLT     = 0b100,
@@ -59,19 +59,19 @@ enum struct Branch_Inst {
     BGEU    = 0b111,
 };
 
-enum struct Fence_Inst {
+enum struct Fence_Inst : uint8_t {
     FENCE   = 0b000,
     FENCEI  = 0b001,
 };
 
-enum struct Load_Inst {
+enum struct Load_Inst : uint8_t {
     LB  = 0b0,
     LH  = 0b1,
     LW  = 0b10,
     LBU = 0b100,
 };
 
-enum struct Store_Inst {
+enum struct Store_Inst : uint8_t {
     SB = 0,
     SH,
     SW,

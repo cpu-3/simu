@@ -104,8 +104,39 @@ class Memory {
 };
 
 class ALU {
+    public:
     static uint32_t add(uint32_t x, uint32_t y) {
         return x + y;
+    }
+    static uint32_t sub(uint32_t x, uint32_t y) {
+        return x - y;
+    }
+    static uint32_t sll(uint32_t x, uint32_t y) {
+        return x << (y & 0b11111);
+    }
+    static uint32_t srl(uint32_t x, uint32_t y) {
+        return x >> (y & 0b11111);
+    }
+    static uint32_t sra(uint32_t x, uint32_t y) {
+        int32_t a = (int32_t)x;
+        return (uint32_t)(x >> (y & 0b11111));
+    }
+    static uint32_t slt(uint32_t x, uint32_t y) {
+        int32_t a = (int32_t)x;
+        int32_t b = (int32_t)y;
+        return a > b;
+    }
+    static uint32_t sltu(uint32_t x, uint32_t y) {
+        return x > y;
+    }
+    static uint32_t and_(uint32_t x, uint32_t y) {
+        return x & y;
+    }
+    static uint32_t or_(uint32_t x, uint32_t y) {
+        return x | y;
+    }
+    static uint32_t xor_(uint32_t x, uint32_t y) {
+        return x ^ y;
     }
 };
 
@@ -250,11 +281,123 @@ class Core {
     Memory *m;
     Register *r;
 
-    void run(Decoder d) {
-        switch (d.opcode) {
-            case Inst::ADD:
+    void add(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::add(x, y));
+    }
+    void sub(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::sub(x, y));
+    }
+    void sll(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::sll(x, y));
+    }
+    void slt(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::slt(x, y));
+    }
+    void sltu(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::sltu(x, y));
+    }
+    void xor_(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::xor_(x, y));
+    }
+    void or_(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::or_(x, y));
+    }
+    void and_(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::and_(x, y));
+    }
+    void sra(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::sra(x, y));
+    }
+    void srl(Decoder *d) {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::srl(x, y));
+    }
+
+    void sr(Decoder *d) {
+        switch (static_cast<ALU_SR_Inst>(d->funct7())) {
+            case ALU_SR_Inst::SRA:
+                sra(d);
+                break;
+            case ALU_SR_Inst::SRL:
+                srl(d);
                 break;
             default:
+                error_dump("対応していないfunct7が使用されました: %x", d->funct7());
+        }
+    }
+
+    void add_sub(Decoder *d) {
+        switch (static_cast<ALU_ADD_SUB_Inst>(d->funct7())) {
+            case ALU_ADD_SUB_Inst::ADD:
+                add(d);
+                break;
+            case ALU_ADD_SUB_Inst::SUB:
+                sub(d);
+                break;
+            default:
+                error_dump("対応していないfunct7が使用されました: %x", d->funct7());
+        }
+    }
+
+
+    void alu(Decoder *d) {
+        switch (static_cast<ALU_Inst>(d->funct3())) {
+            case ALU_Inst::ADD_SUB:
+                add_sub(d);
+                break;
+            case ALU_Inst::SLL:
+                sll(d);
+                break;
+            case ALU_Inst::SLT:
+                slt(d);
+                break;
+            case ALU_Inst::SLTU:
+                sltu(d);
+                break;
+            case ALU_Inst::XOR:
+                xor_(d);
+                break;
+            case ALU_Inst::SR:
+                sr(d);
+                break;
+            case ALU_Inst::OR:
+                or_(d);
+                break;
+            case ALU_Inst::AND:
+                and_(d);
+                break;
+            default:
+                error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+                break;
+        }
+    }
+
+    void run(Decoder *d) {
+        switch (static_cast<Inst>(d->opcode())) {
+            case Inst::ALU:
+                alu(d);
+                break;
+            default:
+                error_dump("対応していないopcodeが使用されました: %x", d->opcode());
                 break;
         }
     }
@@ -264,7 +407,7 @@ class Core {
         while(1) {
             uint32_t ip = r->ip;
             Decoder d = Decoder(ip);
-            run(d);
+            run(&d);
         }
     }
 };
