@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdarg.h>
 #include <cmath>
+#include "inst.hpp"
 
 void error_dump(const char *fmt, ...)
 {
@@ -22,55 +23,81 @@ void warn_dump(const char *fmt, ...) {
 }
 
 class Memory {
+    /* Current Memory Map 
+    0x0      --------
+               Inst
+    0x7ffff  --------
+               Data
+    0x3fffff --------
+    */
     static const uint32_t memory_size = 0xf4240;
+    static const uint32_t inst_mem_lim = 0xffff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
     uint8_t memory[memory_size];
 
-    void write_mem_check(uint32_t addr, uint8_t size)
+    void data_mem_check(uint32_t addr, uint8_t size)
     {
-        if (addr + size >= memory_lim)
+        if (addr % 4 != 0) {
+            error_dump("メモリアドレスのアラインメントがおかしいです: %x", addr);
+        }
+        if (addr + size >= memory_lim || addr + size <= inst_mem_lim)
         {
+            error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
+        }
+    }
+
+    void inst_mem_check(uint32_t addr) {
+        if (addr % 4 != 0) {
+            error_dump("メモリアドレスのアラインメントがおかしいです: %x", addr);
+        }
+        if (addr + 4 > inst_mem_lim) {
             error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
         }
     }
 
     void write_mem(uint32_t addr, uint8_t val)
     {
-        write_mem_check(addr, 1);
+        data_mem_check(addr, 1);
         memory[addr] = val;
     }
 
     void write_mem(uint32_t addr, uint16_t val)
     {
-        write_mem_check(addr, 2);
+        data_mem_check(addr, 2);
         uint16_t *m = (uint16_t *)memory;
         m[addr] = val;
     }
 
     void write_mem(uint32_t addr, uint32_t val)
     {
-        write_mem_check(addr, 4);
+        data_mem_check(addr, 4);
         uint32_t *m = (uint32_t *)memory;
         m[addr] = val;
     }
 
     uint8_t read_mem_1(uint32_t addr)
     {
-        write_mem_check(addr, 1);
+        data_mem_check(addr, 1);
         return memory[addr];
     }
 
     uint16_t read_mem_2(uint32_t addr)
     {
-        write_mem_check(addr, 2);
+        data_mem_check(addr, 2);
         uint16_t *m = (uint16_t *)memory;
         return m[addr];
     }
 
     uint32_t read_mem_4(uint32_t addr)
     {
-        write_mem_check(addr, 4);
+        data_mem_check(addr, 4);
+        uint32_t *m = (uint32_t *)memory;
+        return m[addr];
+    }
+
+    uint32_t get_inst(uint32_t addr) {
+        inst_mem_check(addr);
         uint32_t *m = (uint32_t *)memory;
         return m[addr];
     }
@@ -122,6 +149,8 @@ class Register {
     }
 
     public:
+    uint32_t ip;
+    Register() : ip(0){}
     void set_ireg(int name, uint32_t val) {
         check_ireg_name(name, 1);
 
@@ -144,9 +173,6 @@ class Register {
     }
 };
 
-class Inst {
-
-};
 
 class Decoder {
     // get val's [l, r) bit value
@@ -190,11 +216,57 @@ class Decoder {
         return val >> l;
     }
     public:
-    void decode();
+    uint32_t code;
+    Decoder(uint32_t c) {
+        code = c;
+    }
+    uint8_t opcode() {
+        return bit_range(code, 0, 7);
+    }
+    uint8_t rd() {
+        return bit_range(code, 7, 12);
+    }
+    uint8_t rs1() {
+        return bit_range(code, 15, 20);
+    }
+    uint8_t rs2() {
+        return bit_range(code, 20, 25);
+    }
+    uint8_t funct3() {
+        return bit_range(code, 12, 15);
+    }
+    uint16_t funct7() {
+        return bit_range(code, 25, 31);
+    }
+    uint16_t s_type_imm() {
+        return (bit_range(code, 25, 32) << 5) | (bit_range(code, 7, 12));
+    }
+    uint32_t u_type_imm() {
+        return bit_range(code, 12, 32);
+    }
 };
 
-class Exec {
+class Core {
+    Memory *m;
+    Register *r;
 
+    void run(Decoder d) {
+        switch (d.opcode) {
+            case Inst::ADD:
+                break;
+            default:
+                break;
+        }
+    }
+
+    public:
+    void main_loop() {
+        while(1) {
+            uint32_t ip = r->ip;
+            Decoder d = Decoder(ip);
+            run(d);
+        }
+    }
 };
 
 int main(void) {
