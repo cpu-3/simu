@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdarg.h>
 #include <cmath>
+#include <fstream>
 #include "inst.hpp"
 
 void error_dump(const char *fmt, ...)
@@ -23,7 +24,7 @@ void warn_dump(const char *fmt, ...) {
 }
 
 class Memory {
-    /* Current Memory Map 
+    /* Current Memory Map
     0x0      --------
                Inst
     0x7ffff  --------
@@ -36,11 +37,15 @@ class Memory {
     static const uint32_t memory_lim = memory_base + memory_size;
     uint8_t memory[memory_size];
 
-    void data_mem_check(uint32_t addr, uint8_t size)
-    {
+    void addr_alignment_check(uint32_t addr) {
         if (addr % 4 != 0) {
             error_dump("メモリアドレスのアラインメントがおかしいです: %x", addr);
         }
+    }
+
+    void data_mem_check(uint32_t addr, uint8_t size)
+    {
+        addr_alignment_check(addr);
         if (addr + size >= memory_lim || addr + size <= inst_mem_lim)
         {
             error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
@@ -48,14 +53,18 @@ class Memory {
     }
 
     void inst_mem_check(uint32_t addr) {
-        if (addr % 4 != 0) {
-            error_dump("メモリアドレスのアラインメントがおかしいです: %x", addr);
-        }
+        addr_alignment_check(addr);
         if (addr + 4 > inst_mem_lim) {
             error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
         }
     }
 
+    void map_mem_check(uint32_t addr, uint32_t size) {
+        if ((addr + size) >= memory_lim) {
+            error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
+        }
+    }
+    public:
     void write_mem(uint32_t addr, uint8_t val)
     {
         data_mem_check(addr, 1);
@@ -66,14 +75,14 @@ class Memory {
     {
         data_mem_check(addr, 2);
         uint16_t *m = (uint16_t *)memory;
-        m[addr] = val;
+        m[addr / 2] = val;
     }
 
     void write_mem(uint32_t addr, uint32_t val)
     {
         data_mem_check(addr, 4);
         uint32_t *m = (uint32_t *)memory;
-        m[addr] = val;
+        m[addr / 4] = val;
     }
 
     uint8_t read_mem_1(uint32_t addr)
@@ -86,20 +95,28 @@ class Memory {
     {
         data_mem_check(addr, 2);
         uint16_t *m = (uint16_t *)memory;
-        return m[addr];
+        return m[addr / 2];
     }
 
     uint32_t read_mem_4(uint32_t addr)
     {
         data_mem_check(addr, 4);
         uint32_t *m = (uint32_t *)memory;
-        return m[addr];
+        return m[addr / 4];
     }
 
     uint32_t get_inst(uint32_t addr) {
         inst_mem_check(addr);
         uint32_t *m = (uint32_t *)memory;
-        return m[addr];
+        return m[addr / 4];
+    }
+
+    void mmap(uint32_t addr, uint8_t *data, uint32_t length) {
+        addr_alignment_check(addr);
+        addr_alignment_check(length);
+        for (int i = 0; i < length; i++) {
+            memory[addr + i] = data[i];
+        }
     }
 };
 
@@ -202,49 +219,56 @@ class Register {
         }
         return i_registers[name];
     }
+    void info() {
+        for (int i = 0; i < ireg_size; i++) {
+            std::cout << "x" << i << ": " << i_registers[i] << std::endl;
+        }
+    }
 };
-
 
 class Decoder {
     // get val's [l, r) bit value
-    uint32_t bit_range(uint8_t val, uint8_t l, uint8_t r) {
-        static const int masks[] = {
-            ~(1 << 0),
-            ~(1 << 1),
-            ~(1 << 2),
-            ~(1 << 3),
-            ~(1 << 4),
-            ~(1 << 5),
-            ~(1 << 6),
-            ~(1 << 7),
-            ~(1 << 8),
-            ~(1 << 9),
-            ~(1 << 10),
-            ~(1 << 11),
-            ~(1 << 12),
-            ~(1 << 13),
-            ~(1 << 14),
-            ~(1 << 15),
-            ~(1 << 16),
-            ~(1 << 17),
-            ~(1 << 18),
-            ~(1 << 19),
-            ~(1 << 20),
-            ~(1 << 21),
-            ~(1 << 22),
-            ~(1 << 23),
-            ~(1 << 24),
-            ~(1 << 25),
-            ~(1 << 26),
-            ~(1 << 27),
-            ~(1 << 28),
-            ~(1 << 29),
-            ~(1 << 30),
-            ~(1 << 31),
+    uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r) {
+        static const uint32_t masks[] = {
+            1 << 0,
+            (1u << 1) - 1,
+            (1 << 2) - 1,
+            (1 << 3) - 1,
+            (1 << 4) - 1,
+            (1 << 5) - 1,
+            (1 << 6) - 1,
+            (1 << 7) - 1,
+            (1 << 8) - 1,
+            (1 << 9) - 1,
+            (1 << 10) - 1,
+            (1 << 11) - 1,
+            (1 << 12) - 1,
+            (1 << 13) - 1,
+            (1 << 14) - 1,
+            (1 << 15) - 1,
+            (1 << 16) - 1,
+            (1 << 17) - 1,
+            (1 << 18) - 1,
+            (1 << 19) - 1,
+            (1 << 20) - 1,
+            (1 << 21) - 1,
+            (1 << 22) - 1,
+            (1 << 23) - 1,
+            (1 << 24) - 1,
+            (1 << 25) - 1,
+            (1 << 26) - 1,
+            (1 << 27) - 1,
+            (1 << 28) - 1,
+            (1 << 29) - 1,
+            (1 << 30) - 1,
+            (1u << 31) - 1,
+            (1ull << 32) - 1,
         };
 
-        val &= masks[32 - r];
-        return val >> l;
+        val >>= (32 - r);
+        val &= (masks[r - l]);
+        std::cout << val << std::endl;
+        return val;
     }
     public:
     uint32_t code;
@@ -278,6 +302,7 @@ class Decoder {
 };
 
 class Core {
+    const uint32_t instruction_load_address = 0;
     Memory *m;
     Register *r;
 
@@ -403,15 +428,43 @@ class Core {
     }
 
     public:
+    Core(std::string filename) {
+        r = new Register;
+        m = new Memory;
+
+        char buf[512];
+        std::ifstream ifs(filename);
+        uint32_t addr = instruction_load_address;
+        while(!ifs.eof()) {
+            ifs.read(buf, 512);
+            int read_bytes = ifs.gcount();
+            m->mmap(addr, (uint8_t*)buf, read_bytes);
+            addr += read_bytes;
+        }
+    }
+    ~Core() {
+        delete r;
+        delete m;
+    }
     void main_loop() {
         while(1) {
             uint32_t ip = r->ip;
-            Decoder d = Decoder(ip);
+            if (ip > 12) {
+                break;
+            }
+            Decoder d = Decoder(m->get_inst(ip));
+            r->ip += 4;
             run(&d);
         }
     }
 };
 
-int main(void) {
+int main(int argc, char **argv) {
+    if (argc == 1) {
+        std::cout << "Usage: " << argv[0] << " program file" << std::endl;
+        return 0;
+    }
+    Core core((std::string(argv[1])));
+    core.main_loop();
     return 0;
 }
