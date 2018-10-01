@@ -304,6 +304,28 @@ class Decoder {
     uint32_t u_type_imm() {
         return bit_range(code, 12, 32);
     }
+    uint32_t i_type_imm() {
+        return bit_range(code, 20, 32);
+    }
+    int32_t b_type_imm() {
+        int32_t ret = (bit_range(code, 7, 8) << 11) + 
+                       (bit_range(code, 8, 12) << 1) +
+                       (bit_range(code, 25, 31) << 5) +
+                       (bit_range(code, 31, 32) << 12);
+        ret <<= 19;
+        ret >>= 19
+        return ret;
+    }
+    int32_t jal_imm() {
+        // sign extended
+        int32_t ret = (bit_range(code, 12, 20) << 12) + 
+                       (bit_range(code, 20, 21) << 11) +
+                       (bit_range(code, 21, 31) << 1) +
+                       (bit_range(code, 31, 32) << 20);
+        ret <<= 11;
+        ret >>= 11;
+        return ret;
+    }
 };
 
 class Core {
@@ -361,7 +383,57 @@ class Core {
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
-
+    void lui(Decoder *d) {
+        uint32_t val = d->u_type_imm() << 12;
+        r->set_ireg(d->rd(), val);
+    }
+    void auipc(Decoder *d) {
+        // sign extended
+        int64_t val = d->u_type_imm() << 12;
+        val <<= 32;
+        val >>= 32;
+        val += (int64_t)(r->ip);
+        r->set_ireg(d->rd(), val);
+    }
+    void jal(Decoder *d) {
+        int32_t imm = d->jal_imm();
+        r->set_ireg(d->rd(), r->ip + 4);
+        r->ip = (int32_t)r->ip + imm;
+    }
+    void branch_inner(Decoder *d, int flag) {
+        if (flag) {
+            r->ip = (int32_t) r->ip + d->b_type_imm();
+        } else {
+            r->ip += 4;
+        }
+    }
+    void beq(Decoder *d) {
+        branch_inner(d, r->get_ireg(d->rs1()) == r->get_ireg(d->rs2()));
+    }
+    void bne(Decoder *d) {
+        branch_inner(d, r->get_ireg(d->rs1()) != r->get_ireg(d->rs2()));
+    }
+    void blt(Decoder *d) {
+        branch_inner(d, (int64_t)r->get_ireg(d->rs1()) < (int64_t)r->get_ireg(d->rs2()));
+    }
+    void bge(Decoder *d) {
+        branch_inner(d, (int64_t)r->get_ireg(d->rs1()) >= (int64_t)r->get_ireg(d->rs2()));
+    }
+    void bltu(Decoder *d) {
+        branch_inner(d, r->get_ireg(d->rs1()) < r->get_ireg(d->rs2()));
+    }
+    void bgeu(Decoder *d) {
+        branch_inner(d, r->get_ireg(d->rs1()) >= r->get_ireg(d->rs2()));
+    }
+    void jalr(Decoder *d) {
+        // sign extended
+        int32_t imm = d->i_type_imm();
+        imm <<= 20;
+        imm >>= 20;
+        int32_t s = d->rs1();
+        r->set_ireg(d->rd(), r->ip + 4);
+        r->ip = s + imm;
+    }
     void sr(Decoder *d) {
         switch (static_cast<ALU_SR_Inst>(d->funct7())) {
             case ALU_SR_Inst::SRA:
@@ -387,7 +459,6 @@ class Core {
                 error_dump("対応していないfunct7が使用されました: %x", d->funct7());
         }
     }
-
 
     void alu(Decoder *d) {
         switch (static_cast<ALU_Inst>(d->funct3())) {
@@ -417,7 +488,31 @@ class Core {
                 break;
             default:
                 error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+        }
+    }
+
+    void branch(Decoder *d) {
+        switch (static_cast<Branch_Inst>(d->funct3())) {
+            case Branch_Inst::BEQ:
+                beq(d);
                 break;
+            case Branch_Inst::BNE:
+                bne(d);
+                break;
+            case Branch_Inst::BLT:
+                blt(d);
+                break;
+            case Branch_Inst::BGE:
+                bge(d);
+                break;
+            case Branch_Inst::BLTU:
+                bltu(d);
+                break;
+            case Branch_Inst::BGEU:
+                bgeu(d);
+                break;
+            default:
+                error_dump("対応していないopcodeが使用されました: %x", d->opcode());
         }
     }
 
@@ -425,9 +520,20 @@ class Core {
         switch (static_cast<Inst>(d->opcode())) {
             case Inst::ALU:
                 alu(d);
+                r->ip += 4;
+                break;
+            case Inst::BRANCH:
+                branch(d);
+                break;
+            case Inst::JAL:
+                jal(d);
+                break;
+            case Inst::JALR:
+                jalr(d);
                 break;
             default:
                 error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+                r->ip += 4;
                 break;
         }
     }
@@ -459,7 +565,6 @@ class Core {
                 break;
             }
             Decoder d = Decoder(m->get_inst(ip));
-            r->ip += 4;
             run(&d);
         }
     }
