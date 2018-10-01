@@ -220,9 +220,14 @@ class Register {
         return i_registers[name];
     }
     void info() {
+        std::cout << "ip: " << ip << std::endl;
         for (int i = 0; i < ireg_size; i++) {
-            std::cout << "x" << i << ": " << i_registers[i] << std::endl;
+            std::cout << "x" << i << ": " << i_registers[i] << " ";
+            if (i % 6 == 5) {
+                std::cout << std::endl;
+            }
         }
+        std::cout << std::endl;
     }
 };
 
@@ -291,7 +296,7 @@ class Decoder {
         return bit_range(code, 12, 15);
     }
     uint16_t funct7() {
-        return bit_range(code, 25, 31);
+        return bit_range(code, 25, 32);
     }
     uint16_t s_type_imm() {
         return (bit_range(code, 25, 32) << 5) | (bit_range(code, 7, 12));
@@ -449,7 +454,8 @@ class Core {
     void main_loop() {
         while(1) {
             uint32_t ip = r->ip;
-            if (ip > 12) {
+            r->info();
+            if (ip >= 12) {
                 break;
             }
             Decoder d = Decoder(m->get_inst(ip));
