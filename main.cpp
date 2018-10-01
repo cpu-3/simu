@@ -272,7 +272,6 @@ class Decoder {
 
         val >>= (32 - r);
         val &= (masks[r - l]);
-        std::cout << val << std::endl;
         return val;
     }
     public:
@@ -313,7 +312,7 @@ class Decoder {
                        (bit_range(code, 25, 31) << 5) +
                        (bit_range(code, 31, 32) << 12);
         ret <<= 19;
-        ret >>= 19
+        ret >>= 19;
         return ret;
     }
     int32_t jal_imm() {
@@ -531,6 +530,14 @@ class Core {
             case Inst::JALR:
                 jalr(d);
                 break;
+            case Inst::LUI:
+                lui(d);
+                r->ip += 4;
+                break;
+            case Inst::AUIPC:
+                auipc(d);
+                r->ip += 4;
+                break;
             default:
                 error_dump("対応していないopcodeが使用されました: %x", d->opcode());
                 r->ip += 4;
@@ -561,9 +568,6 @@ class Core {
         while(1) {
             uint32_t ip = r->ip;
             r->info();
-            if (ip >= 12) {
-                break;
-            }
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
         }
