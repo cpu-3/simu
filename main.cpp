@@ -378,7 +378,7 @@ class Decoder
     int32_t jal_imm()
     {
         // sign extended
-        
+
         int32_t ret = (bit_range(code, 12, 20) << 12) +
                       (bit_range(code, 20, 21) << 11) +
                       (bit_range(code, 21, 31) << 1) +
@@ -560,13 +560,15 @@ class Core
         }
     }
 
-    void alui(Decoder *d) {
-        switch(static_cast<ALUI_Inst>(d->funct3())) {
-            case ALUI_Inst::ADDI:
-                addi(d);
-                break;
-            default:
-                error_dump("対応していないfunct3: %x", d->funct3());
+    void alui(Decoder *d)
+    {
+        switch (static_cast<ALUI_Inst>(d->funct3()))
+        {
+        case ALUI_Inst::ADDI:
+            addi(d);
+            break;
+        default:
+            error_dump("対応していないfunct3: %x", d->funct3());
         }
     }
 
@@ -630,7 +632,9 @@ class Core
         }
     }
 
-    void sw(Decoder *d) {
+    // TODO: sb, sh
+    void sw(Decoder *d)
+    {
         uint32_t base = r->get_ireg(d->rs1());
         uint32_t src = r->get_ireg(d->rs2());
         uint32_t y = d->s_type_imm();
@@ -638,15 +642,42 @@ class Core
         m->write_mem(addr, src);
     }
 
-    void store(Decoder *d) {
-        switch(static_cast<Store_Inst>(d->funct3())) {
-            case Store_Inst::SW:
-                sw(d);
-                break;
-            default:
-                error_dump("対応していないopcodeが使用されました: %x", d->opcode());
-                r->ip += 4;
-                break;
+    void store(Decoder *d)
+    {
+        switch (static_cast<Store_Inst>(d->funct3()))
+        {
+        case Store_Inst::SW:
+            sw(d);
+            break;
+        default:
+            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+            r->ip += 4;
+            break;
+        }
+    }
+
+    // TODO: lb, lh
+    void lw(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        uint32_t addr = base + y;
+        std::cout << base << " " << y << std::endl;
+        uint32_t val = m->read_mem_4(addr);
+        r->set_ireg(d->rd(), val);
+    }
+
+    void load(Decoder *d)
+    {
+        switch (static_cast<Load_Inst>(d->funct3()))
+        {
+        case Load_Inst::LW:
+            lw(d);
+            break;
+        default:
+            error_dump("対応していないfunct3が使用されました: %x", d->funct3());
+            r->ip += 4;
+            break;
         }
     }
 
@@ -681,6 +712,10 @@ class Core
             break;
         case Inst::STORE:
             store(d);
+            r->ip += 4;
+            break;
+        case Inst::LOAD:
+            load(d);
             r->ip += 4;
             break;
         default:
