@@ -16,14 +16,16 @@ void error_dump(const char *fmt, ...)
     exit(-1);
 }
 
-void warn_dump(const char *fmt, ...) {
+void warn_dump(const char *fmt, ...)
+{
     va_list ap;
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
     va_end(ap);
 }
 
-class Memory {
+class Memory
+{
     /* Current Memory Map
     0x0      --------
                Inst
@@ -37,8 +39,10 @@ class Memory {
     static const uint32_t memory_lim = memory_base + memory_size;
     uint8_t memory[memory_size];
 
-    void addr_alignment_check(uint32_t addr) {
-        if (addr % 4 != 0) {
+    void addr_alignment_check(uint32_t addr)
+    {
+        if (addr % 4 != 0)
+        {
             error_dump("メモリアドレスのアラインメントがおかしいです: %x", addr);
         }
     }
@@ -52,19 +56,24 @@ class Memory {
         }
     }
 
-    void inst_mem_check(uint32_t addr) {
+    void inst_mem_check(uint32_t addr)
+    {
         addr_alignment_check(addr);
-        if (addr + 4 > inst_mem_lim) {
+        if (addr + 4 > inst_mem_lim)
+        {
             error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
         }
     }
 
-    void map_mem_check(uint32_t addr, uint32_t size) {
-        if ((addr + size) >= memory_lim) {
+    void map_mem_check(uint32_t addr, uint32_t size)
+    {
+        if ((addr + size) >= memory_lim)
+        {
             error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
         }
     }
-    public:
+
+  public:
     void write_mem(uint32_t addr, uint8_t val)
     {
         data_mem_check(addr, 1);
@@ -105,125 +114,159 @@ class Memory {
         return m[addr / 4];
     }
 
-    uint32_t get_inst(uint32_t addr) {
+    uint32_t get_inst(uint32_t addr)
+    {
         inst_mem_check(addr);
         uint32_t *m = (uint32_t *)memory;
         return m[addr / 4];
     }
 
-    void mmap(uint32_t addr, uint8_t *data, uint32_t length) {
+    void mmap(uint32_t addr, uint8_t *data, uint32_t length)
+    {
         addr_alignment_check(addr);
         addr_alignment_check(length);
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
+        {
             memory[addr + i] = data[i];
         }
     }
 };
 
-class ALU {
-    public:
-    static uint32_t add(uint32_t x, uint32_t y) {
+class ALU
+{
+  public:
+    static uint32_t add(uint32_t x, uint32_t y)
+    {
         return x + y;
     }
-    static uint32_t sub(uint32_t x, uint32_t y) {
+    static uint32_t sub(uint32_t x, uint32_t y)
+    {
         return x - y;
     }
-    static uint32_t sll(uint32_t x, uint32_t y) {
+    static uint32_t sll(uint32_t x, uint32_t y)
+    {
         return x << (y & 0b11111);
     }
-    static uint32_t srl(uint32_t x, uint32_t y) {
+    static uint32_t srl(uint32_t x, uint32_t y)
+    {
         return x >> (y & 0b11111);
     }
-    static uint32_t sra(uint32_t x, uint32_t y) {
+    static uint32_t sra(uint32_t x, uint32_t y)
+    {
         int32_t a = (int32_t)x;
         return (uint32_t)(x >> (y & 0b11111));
     }
-    static uint32_t slt(uint32_t x, uint32_t y) {
+    static uint32_t slt(uint32_t x, uint32_t y)
+    {
         int32_t a = (int32_t)x;
         int32_t b = (int32_t)y;
         return a > b;
     }
-    static uint32_t sltu(uint32_t x, uint32_t y) {
+    static uint32_t sltu(uint32_t x, uint32_t y)
+    {
         return x > y;
     }
-    static uint32_t and_(uint32_t x, uint32_t y) {
+    static uint32_t and_(uint32_t x, uint32_t y)
+    {
         return x & y;
     }
-    static uint32_t or_(uint32_t x, uint32_t y) {
+    static uint32_t or_(uint32_t x, uint32_t y)
+    {
         return x | y;
     }
-    static uint32_t xor_(uint32_t x, uint32_t y) {
+    static uint32_t xor_(uint32_t x, uint32_t y)
+    {
         return x ^ y;
     }
 };
 
-class FPU {
-    static float add(float x, float y) {
+class FPU
+{
+    static float add(float x, float y)
+    {
         return x + y;
     }
-    static float sub(float x, float y) {
+    static float sub(float x, float y)
+    {
         return x - y;
     }
-    static float mul(float x, float y) {
+    static float mul(float x, float y)
+    {
         return x * y;
     }
-    static float div(float x, float y) {
+    static float div(float x, float y)
+    {
         return x / y;
     }
-    static float sqrt(float x) {
+    static float sqrt(float x)
+    {
         return std::sqrt(x);
     }
 };
 
-class Register {
+class Register
+{
     static const int ireg_size = 32;
     static const int freg_size = 32;
     uint32_t i_registers[ireg_size] = {0};
     float f_registers[freg_size] = {0.0f};
 
-    static void check_ireg_name(int name, int write) {
-        if (name < 0 || name > ireg_size) {
+    static void check_ireg_name(int name, int write)
+    {
+        if (name < 0 || name > ireg_size)
+        {
             error_dump("レジスタの番号が不正です: %d", name);
         }
 
-        if (write && name == 0) {
+        if (write && name == 0)
+        {
             warn_dump("レジスタ0に書き込もうとしていますが");
         }
     }
-    static void check_freg_name(int name) {
-        if (name < 0 || name > freg_size) {
+    static void check_freg_name(int name)
+    {
+        if (name < 0 || name > freg_size)
+        {
             error_dump("レジスタの番号が不正です: %d", name);
         }
     }
 
-    public:
+  public:
     uint32_t ip;
-    Register() : ip(0){}
-    void set_ireg(int name, uint32_t val) {
+    Register() : ip(0) {}
+    void set_ireg(int name, uint32_t val)
+    {
         check_ireg_name(name, 1);
 
-        if (name == 0) {
+        if (name == 0)
+        {
             return;
         }
         i_registers[name] = val;
     }
-    void set_freg(int name, float val) {
+    void set_freg(int name, float val)
+    {
         check_freg_name(name);
 
         f_registers[name] = val;
     }
-    uint32_t get_ireg(int name) {
+    uint32_t get_ireg(int name)
+    {
         check_ireg_name(name, 0);
-        if (name == 0) {
+        if (name == 0)
+        {
             return 0;
         }
         return i_registers[name];
     }
-    void info() {
+    void info()
+    {
         std::cout << "ip: " << ip << std::endl;
-        for (int i = 0; i < ireg_size; i++) {
+        for (int i = 0; i < ireg_size; i++)
+        {
             std::cout << "x" << i << ": " << i_registers[i] << " ";
-            if (i % 6 == 5) {
+            if (i % 6 == 5)
+            {
                 std::cout << std::endl;
             }
         }
@@ -231,9 +274,11 @@ class Register {
     }
 };
 
-class Decoder {
+class Decoder
+{
     // get val's [l, r) bit value
-    uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r) {
+    uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r)
+    {
         static const uint32_t masks[] = {
             1 << 0,
             (1u << 1) - 1,
@@ -274,119 +319,149 @@ class Decoder {
         val &= (masks[r - l]);
         return val;
     }
-    public:
+
+  public:
     uint32_t code;
-    Decoder(uint32_t c) {
+    Decoder(uint32_t c)
+    {
         code = c;
     }
-    uint8_t opcode() {
+    uint8_t opcode()
+    {
         return bit_range(code, 0, 7);
     }
-    uint8_t rd() {
+    uint8_t rd()
+    {
         return bit_range(code, 7, 12);
     }
-    uint8_t rs1() {
+    uint8_t rs1()
+    {
         return bit_range(code, 15, 20);
     }
-    uint8_t rs2() {
+    uint8_t rs2()
+    {
         return bit_range(code, 20, 25);
     }
-    uint8_t funct3() {
+    uint8_t funct3()
+    {
         return bit_range(code, 12, 15);
     }
-    uint16_t funct7() {
+    uint16_t funct7()
+    {
         return bit_range(code, 25, 32);
     }
-    uint16_t s_type_imm() {
+    uint16_t s_type_imm()
+    {
         return (bit_range(code, 25, 32) << 5) | (bit_range(code, 7, 12));
     }
-    uint32_t u_type_imm() {
+    uint32_t u_type_imm()
+    {
         return bit_range(code, 12, 32);
     }
-    uint32_t i_type_imm() {
-        return bit_range(code, 20, 32);
-    }
-    int32_t b_type_imm() {
-        int32_t ret = (bit_range(code, 7, 8) << 11) + 
-                       (bit_range(code, 8, 12) << 1) +
-                       (bit_range(code, 25, 31) << 5) +
-                       (bit_range(code, 31, 32) << 12);
+    uint32_t i_type_imm()
+    {
+        int32_t ret = bit_range(code, 20, 32);
         ret <<= 19;
         ret >>= 19;
         return ret;
     }
-    int32_t jal_imm() {
+    int32_t b_type_imm()
+    {
+        int32_t ret = (bit_range(code, 7, 8) << 11) +
+                      (bit_range(code, 8, 12) << 1) +
+                      (bit_range(code, 25, 31) << 5) +
+                      (bit_range(code, 31, 32) << 12);
+        ret <<= 19;
+        ret >>= 19;
+        return ret;
+    }
+    int32_t jal_imm()
+    {
         // sign extended
-        int32_t ret = (bit_range(code, 12, 20) << 12) + 
-                       (bit_range(code, 20, 21) << 11) +
-                       (bit_range(code, 21, 31) << 1) +
-                       (bit_range(code, 31, 32) << 20);
+        
+        int32_t ret = (bit_range(code, 12, 20) << 12) +
+                      (bit_range(code, 20, 21) << 11) +
+                      (bit_range(code, 21, 31) << 1) +
+                      (bit_range(code, 31, 32) << 20);
         ret <<= 11;
         ret >>= 11;
         return ret;
     }
 };
 
-class Core {
+class Core
+{
     const uint32_t instruction_load_address = 0;
     Memory *m;
     Register *r;
 
-    void add(Decoder *d) {
+    void add(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::add(x, y));
     }
-    void sub(Decoder *d) {
+    void sub(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sub(x, y));
     }
-    void sll(Decoder *d) {
+    void sll(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sll(x, y));
     }
-    void slt(Decoder *d) {
+    void slt(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::slt(x, y));
     }
-    void sltu(Decoder *d) {
+    void sltu(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sltu(x, y));
     }
-    void xor_(Decoder *d) {
+    void xor_(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::xor_(x, y));
     }
-    void or_(Decoder *d) {
+    void or_(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::or_(x, y));
     }
-    void and_(Decoder *d) {
+    void and_(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::and_(x, y));
     }
-    void sra(Decoder *d) {
+    void sra(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sra(x, y));
     }
-    void srl(Decoder *d) {
+    void srl(Decoder *d)
+    {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
-    void lui(Decoder *d) {
+    void lui(Decoder *d)
+    {
         uint32_t val = d->u_type_imm() << 12;
         r->set_ireg(d->rd(), val);
     }
-    void auipc(Decoder *d) {
+    void auipc(Decoder *d)
+    {
         // sign extended
         int64_t val = d->u_type_imm() << 12;
         val <<= 32;
@@ -394,37 +469,49 @@ class Core {
         val += (int64_t)(r->ip);
         r->set_ireg(d->rd(), val);
     }
-    void jal(Decoder *d) {
+    void jal(Decoder *d)
+    {
         int32_t imm = d->jal_imm();
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = (int32_t)r->ip + imm;
     }
-    void branch_inner(Decoder *d, int flag) {
-        if (flag) {
-            r->ip = (int32_t) r->ip + d->b_type_imm();
-        } else {
+    void branch_inner(Decoder *d, int flag)
+    {
+        if (flag)
+        {
+            r->ip = (int32_t)r->ip + d->b_type_imm();
+        }
+        else
+        {
             r->ip += 4;
         }
     }
-    void beq(Decoder *d) {
+    void beq(Decoder *d)
+    {
         branch_inner(d, r->get_ireg(d->rs1()) == r->get_ireg(d->rs2()));
     }
-    void bne(Decoder *d) {
+    void bne(Decoder *d)
+    {
         branch_inner(d, r->get_ireg(d->rs1()) != r->get_ireg(d->rs2()));
     }
-    void blt(Decoder *d) {
+    void blt(Decoder *d)
+    {
         branch_inner(d, (int64_t)r->get_ireg(d->rs1()) < (int64_t)r->get_ireg(d->rs2()));
     }
-    void bge(Decoder *d) {
+    void bge(Decoder *d)
+    {
         branch_inner(d, (int64_t)r->get_ireg(d->rs1()) >= (int64_t)r->get_ireg(d->rs2()));
     }
-    void bltu(Decoder *d) {
+    void bltu(Decoder *d)
+    {
         branch_inner(d, r->get_ireg(d->rs1()) < r->get_ireg(d->rs2()));
     }
-    void bgeu(Decoder *d) {
+    void bgeu(Decoder *d)
+    {
         branch_inner(d, r->get_ireg(d->rs1()) >= r->get_ireg(d->rs2()));
     }
-    void jalr(Decoder *d) {
+    void jalr(Decoder *d)
+    {
         // sign extended
         int32_t imm = d->i_type_imm();
         imm <<= 20;
@@ -433,110 +520,131 @@ class Core {
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = s + imm;
     }
-    void sr(Decoder *d) {
-        switch (static_cast<ALU_SR_Inst>(d->funct7())) {
-            case ALU_SR_Inst::SRA:
-                sra(d);
-                break;
-            case ALU_SR_Inst::SRL:
-                srl(d);
-                break;
-            default:
-                error_dump("対応していないfunct7が使用されました: %x", d->funct7());
+    void addi(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::add(x, y));
+    }
+    void sltiu(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::sltu(x, y));
+    }
+    void sr(Decoder *d)
+    {
+        switch (static_cast<ALU_SR_Inst>(d->funct7()))
+        {
+        case ALU_SR_Inst::SRA:
+            sra(d);
+            break;
+        case ALU_SR_Inst::SRL:
+            srl(d);
+            break;
+        default:
+            error_dump("対応していないfunct7が使用されました: %x", d->funct7());
         }
     }
 
-    void add_sub(Decoder *d) {
-        switch (static_cast<ALU_ADD_SUB_Inst>(d->funct7())) {
-            case ALU_ADD_SUB_Inst::ADD:
-                add(d);
-                break;
-            case ALU_ADD_SUB_Inst::SUB:
-                sub(d);
-                break;
-            default:
-                error_dump("対応していないfunct7が使用されました: %x", d->funct7());
+    void add_sub(Decoder *d)
+    {
+        switch (static_cast<ALU_ADD_SUB_Inst>(d->funct7()))
+        {
+        case ALU_ADD_SUB_Inst::ADD:
+            add(d);
+            break;
+        case ALU_ADD_SUB_Inst::SUB:
+            sub(d);
+            break;
+        default:
+            error_dump("対応していないfunct7が使用されました: %x", d->funct7());
         }
     }
 
-    void alu(Decoder *d) {
-        switch (static_cast<ALU_Inst>(d->funct3())) {
-            case ALU_Inst::ADD_SUB:
-                add_sub(d);
-                break;
-            case ALU_Inst::SLL:
-                sll(d);
-                break;
-            case ALU_Inst::SLT:
-                slt(d);
-                break;
-            case ALU_Inst::SLTU:
-                sltu(d);
-                break;
-            case ALU_Inst::XOR:
-                xor_(d);
-                break;
-            case ALU_Inst::SR:
-                sr(d);
-                break;
-            case ALU_Inst::OR:
-                or_(d);
-                break;
-            case ALU_Inst::AND:
-                and_(d);
+    void alui(Decoder *d) {
+        switch(static_cast<ALUI_Inst>(d->funct3())) {
+            case ALUI_Inst::ADDI:
+                addi(d);
                 break;
             default:
                 error_dump("対応していないopcodeが使用されました: %x", d->opcode());
         }
     }
 
-    void branch(Decoder *d) {
-        switch (static_cast<Branch_Inst>(d->funct3())) {
-            case Branch_Inst::BEQ:
-                beq(d);
-                break;
-            case Branch_Inst::BNE:
-                bne(d);
-                break;
-            case Branch_Inst::BLT:
-                blt(d);
-                break;
-            case Branch_Inst::BGE:
-                bge(d);
-                break;
-            case Branch_Inst::BLTU:
-                bltu(d);
-                break;
-            case Branch_Inst::BGEU:
-                bgeu(d);
-                break;
-            default:
-                error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+    void alu(Decoder *d)
+    {
+        switch (static_cast<ALU_Inst>(d->funct3()))
+        {
+        case ALU_Inst::ADD_SUB:
+            add_sub(d);
+            break;
+        case ALU_Inst::SLL:
+            sll(d);
+            break;
+        case ALU_Inst::SLT:
+            slt(d);
+            break;
+        case ALU_Inst::SLTU:
+            sltu(d);
+            break;
+        case ALU_Inst::XOR:
+            xor_(d);
+            break;
+        case ALU_Inst::SR:
+            sr(d);
+            break;
+        case ALU_Inst::OR:
+            or_(d);
+            break;
+        case ALU_Inst::AND:
+            and_(d);
+            break;
+        default:
+            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
         }
     }
 
-    void run(Decoder *d) {
-        switch (static_cast<Inst>(d->opcode())) {
-            case Inst::ALU:
-                alu(d);
-                r->ip += 4;
-                break;
-            case Inst::BRANCH:
-                branch(d);
-                break;
-            case Inst::JAL:
-                jal(d);
-                break;
-            case Inst::JALR:
-                jalr(d);
-                break;
-            case Inst::LUI:
-                lui(d);
-                r->ip += 4;
-                break;
-            case Inst::AUIPC:
-                auipc(d);
-                r->ip += 4;
+    void branch(Decoder *d)
+    {
+        switch (static_cast<Branch_Inst>(d->funct3()))
+        {
+        case Branch_Inst::BEQ:
+            beq(d);
+            break;
+        case Branch_Inst::BNE:
+            bne(d);
+            break;
+        case Branch_Inst::BLT:
+            blt(d);
+            break;
+        case Branch_Inst::BGE:
+            bge(d);
+            break;
+        case Branch_Inst::BLTU:
+            bltu(d);
+            break;
+        case Branch_Inst::BGEU:
+            bgeu(d);
+            break;
+        default:
+            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+        }
+    }
+
+    void sw(Decoder *d) {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t src = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        uint32_t addr = base + y;
+        uint32_t val = m->read_mem_4(src);
+        m->write_mem(addr, val);
+    }
+
+    void store(Decoder *d) {
+        switch(static_cast<Store_Inst>(d->funct3())) {
+            case Store_Inst::SW:
+                sw(d);
                 break;
             default:
                 error_dump("対応していないopcodeが使用されました: %x", d->opcode());
@@ -545,27 +653,72 @@ class Core {
         }
     }
 
-    public:
-    Core(std::string filename) {
+    void run(Decoder *d)
+    {
+        switch (static_cast<Inst>(d->opcode()))
+        {
+        case Inst::ALU:
+            alu(d);
+            r->ip += 4;
+            break;
+        case Inst::ALUI:
+            alui(d);
+            r->ip += 4;
+            break;
+        case Inst::BRANCH:
+            branch(d);
+            break;
+        case Inst::JAL:
+            jal(d);
+            break;
+        case Inst::JALR:
+            jalr(d);
+            break;
+        case Inst::LUI:
+            lui(d);
+            r->ip += 4;
+            break;
+        case Inst::AUIPC:
+            auipc(d);
+            r->ip += 4;
+            break;
+        case Inst::STORE:
+            store(d);
+            r->ip += 4;
+            break;
+        default:
+            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+            r->ip += 4;
+            break;
+        }
+    }
+
+  public:
+    Core(std::string filename)
+    {
         r = new Register;
         m = new Memory;
 
         char buf[512];
         std::ifstream ifs(filename);
         uint32_t addr = instruction_load_address;
-        while(!ifs.eof()) {
+        while (!ifs.eof())
+        {
             ifs.read(buf, 512);
             int read_bytes = ifs.gcount();
-            m->mmap(addr, (uint8_t*)buf, read_bytes);
+            m->mmap(addr, (uint8_t *)buf, read_bytes);
             addr += read_bytes;
         }
     }
-    ~Core() {
+    ~Core()
+    {
         delete r;
         delete m;
     }
-    void main_loop() {
-        while(1) {
+    void main_loop()
+    {
+        while (1)
+        {
             uint32_t ip = r->ip;
             r->info();
             Decoder d = Decoder(m->get_inst(ip));
@@ -574,8 +727,10 @@ class Core {
     }
 };
 
-int main(int argc, char **argv) {
-    if (argc == 1) {
+int main(int argc, char **argv)
+{
+    if (argc == 1)
+    {
         std::cout << "Usage: " << argv[0] << " program file" << std::endl;
         return 0;
     }
