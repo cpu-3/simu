@@ -361,8 +361,8 @@ class Decoder
     uint32_t i_type_imm()
     {
         int32_t ret = bit_range(code, 20, 32);
-        ret <<= 19;
-        ret >>= 19;
+        ret <<= 20;
+        ret >>= 20;
         return ret;
     }
     int32_t b_type_imm()
@@ -371,8 +371,8 @@ class Decoder
                       (bit_range(code, 8, 12) << 1) +
                       (bit_range(code, 25, 31) << 5) +
                       (bit_range(code, 31, 32) << 12);
-        ret <<= 19;
-        ret >>= 19;
+        ret <<= 20;
+        ret >>= 20;
         return ret;
     }
     int32_t jal_imm()
@@ -383,8 +383,8 @@ class Decoder
                       (bit_range(code, 20, 21) << 11) +
                       (bit_range(code, 21, 31) << 1) +
                       (bit_range(code, 31, 32) << 20);
-        ret <<= 11;
-        ret >>= 11;
+        ret <<= 12;
+        ret >>= 12;
         return ret;
     }
 };
@@ -514,9 +514,7 @@ class Core
     {
         // sign extended
         int32_t imm = d->i_type_imm();
-        imm <<= 20;
-        imm >>= 20;
-        int32_t s = d->rs1();
+        int32_t s = r->get_ireg(d->rs1());
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = s + imm;
     }
@@ -568,7 +566,7 @@ class Core
                 addi(d);
                 break;
             default:
-                error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+                error_dump("対応していないfunct3: %x", d->funct3());
         }
     }
 
@@ -634,11 +632,10 @@ class Core
 
     void sw(Decoder *d) {
         uint32_t base = r->get_ireg(d->rs1());
-        uint32_t src = r->get_ireg(d->rs1());
-        uint32_t y = d->i_type_imm();
+        uint32_t src = r->get_ireg(d->rs2());
+        uint32_t y = d->s_type_imm();
         uint32_t addr = base + y;
-        uint32_t val = m->read_mem_4(src);
-        m->write_mem(addr, val);
+        m->write_mem(addr, src);
     }
 
     void store(Decoder *d) {
