@@ -27,14 +27,17 @@ void warn_dump(const char *fmt, ...)
 class Memory
 {
     /* Current Memory Map
-    0x0      --------
-               Inst
-    0x7ffff  --------
-               Data
-    0x3fffff --------
+    0x0     --------
+              Inst
+    0xffff  --------
+              IO
+    0x10fff --------
+              Data
+    0xf4240 --------
     */
     static const uint32_t memory_size = 0xf4240;
     static const uint32_t inst_mem_lim = 0xffff;
+    static const uint32_t IO_mem_lim = 0x10fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
     uint8_t memory[memory_size];
@@ -50,7 +53,7 @@ class Memory
     void data_mem_check(uint32_t addr, uint8_t size)
     {
         addr_alignment_check(addr);
-        if (addr + size >= memory_lim || addr + size <= inst_mem_lim)
+        if (addr + size >= memory_lim || addr + size <= IO_mem_lim)
         {
             error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
         }
@@ -121,8 +124,10 @@ class Memory
         return m[addr / 4];
     }
 
+    // set instructions to memory
+    // inst_memが満杯になって死ぬとかないのかな(wakarazu)
     void mmap(uint32_t addr, uint8_t *data, uint32_t length)
-    {
+    { 
         addr_alignment_check(addr);
         addr_alignment_check(length);
         for (int i = 0; i < length; i++)
