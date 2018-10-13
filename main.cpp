@@ -654,14 +654,114 @@ class Core
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
         }
     }
+ 
+    void lb(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        int32_t offset = d->i_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        uint32_t val = m->read_mem_1(addr);
+        r->set_ireg(d->rd(), val);
+    }
+    void lh(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        int32_t offset = d->i_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        uint32_t val = m->read_mem_2(addr);
+        r->set_ireg(d->rd(), val);
+    }
+    void lw(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        int32_t offset = d->i_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        uint32_t val = m->read_mem_4(addr);
+        r->set_ireg(d->rd(), val);
+    }
+    void lbu(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t offset = d->i_type_imm();
+        uint32_t addr = base + offset;
+        uint32_t val = m->read_mem_1(addr);
+        r->set_ireg(d->rd(), val);
+    }
+    void lhu(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t offset = d->i_type_imm();
+        uint32_t addr = base + offset;
+        uint32_t val = m->read_mem_2(addr);
+        r->set_ireg(d->rd(), val);
+    }
 
-    // TODO: sb, sh
+    void load(Decoder *d)
+    {
+        switch (static_cast<Load_Inst>(d->funct3()))
+        {
+        case Load_Inst::LB:
+            lb(d);
+            break;
+        case Load_Inst::LH:
+            lh(d);
+            break;
+        case Load_Inst::LW:
+            lw(d);
+            break;
+        case Load_Inst::LBU:
+            lbu(d);
+            break;
+        case Load_Inst::LHU:
+            lhu(d);
+            break;
+        default:
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
+            r->ip += 4;
+            break;
+        }
+    }
+
+    void sb(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t src = r->get_ireg(d->rs2());
+        src <<= 24;
+        src >>= 24;
+        int32_t offset = d->s_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        m->write_mem(addr, src);
+    }
+
+    void sh(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t src = r->get_ireg(d->rs2());
+        src <<= 16;
+        src >>= 16;
+        int32_t offset = d->s_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        m->write_mem(addr, src);
+    }
+
     void sw(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
         uint32_t src = r->get_ireg(d->rs2());
-        int32_t y = d->s_type_imm();
-        uint32_t addr = (int32_t)base + y;
+        int32_t offset = d->s_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
         m->write_mem(addr, src);
     }
 
@@ -669,6 +769,12 @@ class Core
     {
         switch (static_cast<Store_Inst>(d->funct3()))
         {
+        case Store_Inst::SB:
+            sb(d);
+            break;
+        case Store_Inst::SH:
+            sh(d);
+            break;
         case Store_Inst::SW:
             sw(d);
             break;
@@ -679,29 +785,6 @@ class Core
         }
     }
 
-    // TODO: lb, lh
-    void lw(Decoder *d)
-    {
-        uint32_t base = r->get_ireg(d->rs1());
-        uint32_t y = d->i_type_imm();
-        uint32_t addr = base + y;
-        uint32_t val = m->read_mem_4(addr);
-        r->set_ireg(d->rd(), val);
-    }
-
-    void load(Decoder *d)
-    {
-        switch (static_cast<Load_Inst>(d->funct3()))
-        {
-        case Load_Inst::LW:
-            lw(d);
-            break;
-        default:
-            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
-            r->ip += 4;
-            break;
-        }
-    }
 
     void run(Decoder *d)
     {

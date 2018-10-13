@@ -65,14 +65,15 @@ enum struct Fence_Inst : uint8_t {
 };
 
 enum struct Load_Inst : uint8_t {
-    LB  = 0b0,
-    LH  = 0b1,
-    LW  = 0b10,
+    LB  = 0b000,
+    LH  = 0b001,
+    LW  = 0b010,
     LBU = 0b100,
+    LHU = 0b101,
 };
 
 enum struct Store_Inst : uint8_t {
-    SB = 0,
-    SH,
-    SW,
+    SB = 0b000,
+    SH = 0b001,
+    SW = 0b010
 };
