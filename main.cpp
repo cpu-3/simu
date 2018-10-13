@@ -304,6 +304,10 @@ class Decoder
     {
         return bit_range(code, 12, 8);
     }
+    uint8_t rm()
+    {
+        return bit_range(code, 15, 13);
+    } 
     uint8_t rs1()
     {
         return bit_range(code, 20, 16);
@@ -315,6 +319,10 @@ class Decoder
     uint8_t funct3()
     {
         return bit_range(code, 15, 13);
+    }
+    uint8_t funct5_fmt()
+    {
+        return bit_range(code, 32, 26);
     }
     uint16_t funct7()
     {
@@ -427,6 +435,18 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
+    
+    //TODO fsub, fmul, fdiv, fsqrt
+    void fadd(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), ALU::srl(x, y));
+    }
+
     void lui(Decoder *d)
     {
         uint32_t val = d->u_type_imm();
@@ -588,10 +608,8 @@ class Core
         case ALUI_Inst::SLLI:
             slli(d);
             break; 
-
-
         default:
-            error_dump("対応していないfunct3: %x\n", d->funct3());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
 
@@ -624,7 +642,7 @@ class Core
             and_(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
 
@@ -651,7 +669,7 @@ class Core
             bgeu(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
  
@@ -779,7 +797,7 @@ class Core
             sw(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
             r->ip += 4;
             break;
         }
@@ -790,23 +808,6 @@ class Core
     {
         switch (static_cast<Inst>(d->opcode()))
         {
-        case Inst::ALU:
-            alu(d);
-            r->ip += 4;
-            break;
-        case Inst::ALUI:
-            alui(d);
-            r->ip += 4;
-            break;
-        case Inst::BRANCH:
-            branch(d);
-            break;
-        case Inst::JAL:
-            jal(d);
-            break;
-        case Inst::JALR:
-            jalr(d);
-            break;
         case Inst::LUI:
             lui(d);
             r->ip += 4;
@@ -815,14 +816,39 @@ class Core
             auipc(d);
             r->ip += 4;
             break;
-        case Inst::STORE:
-            store(d);
-            r->ip += 4;
+        case Inst::JAL:
+            jal(d);
+            break;
+        case Inst::JALR:
+            jalr(d);
+            break;
+        case Inst::BRANCH:
+            branch(d);
             break;
         case Inst::LOAD:
             load(d);
             r->ip += 4;
             break;
+        case Inst::STORE:
+            store(d);
+            r->ip += 4;
+            break;
+        case Inst::ALUI:
+            alui(d);
+            r->ip += 4;
+            break;
+        case Inst::ALU:
+            alu(d);
+            r->ip += 4;
+            break;
+        
+//TODO implement fpu(d)
+/*
+        case Inst::FPU:
+            fpu(d);
+            r->ip += 4;
+            break;
+*/
         default:
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
             r->ip += 4;
