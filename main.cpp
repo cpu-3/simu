@@ -323,8 +323,8 @@ class Decoder
     uint32_t s_type_imm()
     {
         int32_t ret = (bit_range(code, 32, 25) << 5) | (bit_range(code, 12, 7));
-        ret <<= 19;
-        ret >>= 19;
+        ret <<= 20;
+        ret >>= 20;
         return ret;
     }
     uint32_t u_type_imm()
@@ -334,8 +334,8 @@ class Decoder
     uint32_t i_type_imm()
     {
         int32_t ret = bit_range(code, 32, 21);
-        ret <<= 19;
-        ret >>= 19;
+        ret <<= 20;
+        ret >>= 20;
         return ret;
     }
     int32_t b_type_imm()
@@ -344,8 +344,8 @@ class Decoder
                       (bit_range(code, 8, 8) << 11) +
                       (bit_range(code, 31, 26) << 5) +
                       (bit_range(code, 12, 9) << 1);
-        ret <<= 19;
-        ret >>= 19;
+        ret <<= 20;
+        ret >>= 20;
         return ret;
     }
     int32_t jal_imm()
