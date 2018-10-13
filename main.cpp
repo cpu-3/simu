@@ -344,8 +344,8 @@ class Decoder
                       (bit_range(code, 8, 8) << 11) +
                       (bit_range(code, 31, 26) << 5) +
                       (bit_range(code, 12, 9) << 1);
-        ret <<= 20;
-        ret >>= 20;
+        ret <<= 19;
+        ret >>= 19;
         return ret;
     }
     int32_t jal_imm()
