@@ -46,7 +46,7 @@ class Memory
     {
         if (addr % 4 != 0)
         {
-            error_dump("メモリアドレスのアラインメントがおかしいです: %x", addr);
+            error_dump("メモリアドレスのアラインメントがおかしいです: %x\n", addr);
         }
     }
 
@@ -55,7 +55,7 @@ class Memory
         addr_alignment_check(addr);
         if (addr + size >= memory_lim || addr + size <= IO_mem_lim)
         {
-            error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
+            error_dump("多分不正なアドレスに書き込もうとしました: %x\n", addr);
         }
     }
 
@@ -64,7 +64,7 @@ class Memory
         addr_alignment_check(addr);
         if (addr + 4 > inst_mem_lim)
         {
-            error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
+            error_dump("多分不正なアドレスに書き込もうとしました: %x\n", addr);
         }
     }
 
@@ -72,7 +72,7 @@ class Memory
     {
         if ((addr + size) >= memory_lim)
         {
-            error_dump("多分不正なアドレスに書き込もうとしました: %x", addr);
+            error_dump("多分不正なアドレスに書き込もうとしました: %x\n", addr);
         }
     }
 
@@ -220,19 +220,19 @@ class Register
     {
         if (name < 0 || name > ireg_size)
         {
-            error_dump("レジスタの番号が不正です: %d", name);
+            error_dump("レジスタの番号が不正です: %d\n", name);
         }
 
         if (write && name == 0)
         {
-            warn_dump("レジスタ0に書き込もうとしていますが");
+            warn_dump("レジスタ0に書き込もうとしていますが\n");
         }
     }
     static void check_freg_name(int name)
     {
         if (name < 0 || name > freg_size)
         {
-            error_dump("レジスタの番号が不正です: %d", name);
+            error_dump("レジスタの番号が不正です: %d\n", name);
         }
     }
 
@@ -319,9 +319,10 @@ class Decoder
             (1u << 31) - 1,
             (1ull << 32) - 1,
         };
-
-        val >>= (32 - r);
-        val &= (masks[r - l]);
+        
+        r--;
+        val >>= r;
+        val &= (masks[l - r]);
         return val;
     }
 
@@ -333,49 +334,50 @@ class Decoder
     }
     uint8_t opcode()
     {
-        return bit_range(code, 0, 7);
+        return bit_range(code, 7, 1);
     }
     uint8_t rd()
     {
-        return bit_range(code, 7, 12);
+        return bit_range(code, 12, 8);
     }
     uint8_t rs1()
     {
-        return bit_range(code, 15, 20);
+        return bit_range(code, 20, 16);
     }
     uint8_t rs2()
     {
-        return bit_range(code, 20, 25);
+        return bit_range(code, 25, 21);
     }
     uint8_t funct3()
     {
-        return bit_range(code, 12, 15);
+        return bit_range(code, 15, 13);
     }
     uint16_t funct7()
     {
-        return bit_range(code, 25, 32);
+        return bit_range(code, 32, 26);
     }
     uint16_t s_type_imm()
     {
-        return (bit_range(code, 25, 32) << 5) | (bit_range(code, 7, 12));
+        return (bit_range(code, 32, 26) << 5) | (bit_range(code, 12, 8));
     }
     uint32_t u_type_imm()
     {
-        return bit_range(code, 12, 32);
+        return bit_range(code, 32, 13) << 12;
     }
     uint32_t i_type_imm()
     {
-        int32_t ret = bit_range(code, 20, 32);
+        int32_t ret = bit_range(code, 32, 21);
+        //ayashii
         ret <<= 20;
         ret >>= 20;
         return ret;
     }
     int32_t b_type_imm()
     {
-        int32_t ret = (bit_range(code, 7, 8) << 11) +
-                      (bit_range(code, 8, 12) << 1) +
-                      (bit_range(code, 25, 31) << 5) +
-                      (bit_range(code, 31, 32) << 12);
+        int32_t ret = (bit_range(code, 32, 32) << 12) +
+                      (bit_range(code, 8, 8) << 11) +
+                      (bit_range(code, 31, 26) << 5) +
+                      (bit_range(code, 12, 9) << 1);
         ret <<= 20;
         ret >>= 20;
         return ret;
@@ -384,10 +386,10 @@ class Decoder
     {
         // sign extended
 
-        int32_t ret = (bit_range(code, 12, 20) << 12) +
-                      (bit_range(code, 20, 21) << 11) +
-                      (bit_range(code, 21, 31) << 1) +
-                      (bit_range(code, 31, 32) << 20);
+        int32_t ret = (bit_range(code, 32, 32) << 20) +
+                      (bit_range(code, 20, 13) << 12) +
+                      (bit_range(code, 21, 21) << 11) +
+                      (bit_range(code, 31, 22) << 1);
         ret <<= 12;
         ret >>= 12;
         return ret;
@@ -528,13 +530,27 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::add(x, y));
+    } 
+    void slti(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::sltu(x, y));
     }
+ 
     void sltiu(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sltu(x, y));
     }
+    void ori(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::or_(x, y));
+    }
+
     void sr(Decoder *d)
     {
         switch (static_cast<ALU_SR_Inst>(d->funct7()))
@@ -546,7 +562,7 @@ class Core
             srl(d);
             break;
         default:
-            error_dump("対応していないfunct7が使用されました: %x", d->funct7());
+            error_dump("対応していないfunct7が使用されました: %x\n", d->funct7());
         }
     }
 
@@ -561,10 +577,11 @@ class Core
             sub(d);
             break;
         default:
-            error_dump("対応していないfunct7が使用されました: %x", d->funct7());
+            error_dump("対応していないfunct7が使用されました: %x\n", d->funct7());
         }
     }
 
+    //TO DO
     void alui(Decoder *d)
     {
         switch (static_cast<ALUI_Inst>(d->funct3()))
@@ -572,8 +589,14 @@ class Core
         case ALUI_Inst::ADDI:
             addi(d);
             break;
+        case ALUI_Inst::SLTI:
+            slti(d);
+            break; 
+        case ALUI_Inst::ORI:
+            ori(d);
+            break; 
         default:
-            error_dump("対応していないfunct3: %x", d->funct3());
+            error_dump("対応していないfunct3: %x\n", d->funct3());
         }
     }
 
@@ -606,7 +629,7 @@ class Core
             and_(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
         }
     }
 
@@ -633,7 +656,7 @@ class Core
             bgeu(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
         }
     }
 
@@ -655,7 +678,7 @@ class Core
             sw(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
             r->ip += 4;
             break;
         }
@@ -680,7 +703,7 @@ class Core
             lw(d);
             break;
         default:
-            error_dump("対応していないfunct3が使用されました: %x", d->funct3());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
             r->ip += 4;
             break;
         }
@@ -724,7 +747,7 @@ class Core
             r->ip += 4;
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x", d->opcode());
+            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
             r->ip += 4;
             break;
         }
@@ -759,6 +782,7 @@ class Core
             uint32_t ip = r->ip;
             r->info();
             Decoder d = Decoder(m->get_inst(ip));
+            printf("instr: %x\n", d.code);
             run(&d);
         }
     }
