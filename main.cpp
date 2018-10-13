@@ -55,7 +55,7 @@ class Memory
         addr_alignment_check(addr);
         if (addr + size >= memory_lim || addr + size <= IO_mem_lim)
         {
-            error_dump("多分不正なアドレスに書き込もうとしました: %x\n", addr);
+            error_dump("多分不正なデータアドレスに書き込もうとしました: %x\n", addr);
         }
     }
 
@@ -64,7 +64,7 @@ class Memory
         addr_alignment_check(addr);
         if (addr + 4 > inst_mem_lim)
         {
-            error_dump("多分不正なアドレスに書き込もうとしました: %x\n", addr);
+            error_dump("多分不正な命令アドレスに書き込もうとしました: %x\n", addr);
         }
     }
 
@@ -282,6 +282,7 @@ class Register
 class Decoder
 {
     // get val's [l, r) bit value
+    // ex) bit_range(00010011, 7, 1) -> 00010011
     uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r)
     {
         val <<= 32 - l;
@@ -321,9 +322,9 @@ class Decoder
     }
     uint32_t s_type_imm()
     {
-        int32_t ret = (bit_range(code, 25, 32) << 5) | (bit_range(code, 7, 12));
-        ret <<= 20;
-        ret >>= 20;
+        int32_t ret = (bit_range(code, 32, 25) << 5) | (bit_range(code, 12, 7));
+        ret <<= 19;
+        ret >>= 19;
         return ret;
     }
     uint32_t u_type_imm()
@@ -333,9 +334,8 @@ class Decoder
     uint32_t i_type_imm()
     {
         int32_t ret = bit_range(code, 32, 21);
-        //ayashii
-        ret <<= 20;
-        ret >>= 20;
+        ret <<= 19;
+        ret >>= 19;
         return ret;
     }
     int32_t b_type_imm()
@@ -344,20 +344,19 @@ class Decoder
                       (bit_range(code, 8, 8) << 11) +
                       (bit_range(code, 31, 26) << 5) +
                       (bit_range(code, 12, 9) << 1);
-        ret <<= 20;
-        ret >>= 20;
+        ret <<= 19;
+        ret >>= 19;
         return ret;
     }
     int32_t jal_imm()
     {
         // sign extended
-
         int32_t ret = (bit_range(code, 32, 32) << 20) +
                       (bit_range(code, 20, 13) << 12) +
                       (bit_range(code, 21, 21) << 11) +
                       (bit_range(code, 31, 22) << 1);
-        ret <<= 12;
-        ret >>= 12;
+        ret <<= 11;
+        ret >>= 11;
         return ret;
     }
 };
@@ -430,7 +429,7 @@ class Core
     }
     void lui(Decoder *d)
     {
-        uint32_t val = d->u_type_imm() << 12;
+        uint32_t val = d->u_type_imm();
         r->set_ireg(d->rd(), val);
     }
     void auipc(Decoder *d)
@@ -503,7 +502,6 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sltu(x, y));
     }
- 
     void sltiu(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
