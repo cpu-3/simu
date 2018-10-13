@@ -284,45 +284,8 @@ class Decoder
     // get val's [l, r) bit value
     uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r)
     {
-        static const uint32_t masks[] = {
-            1 << 0,
-            (1u << 1) - 1,
-            (1 << 2) - 1,
-            (1 << 3) - 1,
-            (1 << 4) - 1,
-            (1 << 5) - 1,
-            (1 << 6) - 1,
-            (1 << 7) - 1,
-            (1 << 8) - 1,
-            (1 << 9) - 1,
-            (1 << 10) - 1,
-            (1 << 11) - 1,
-            (1 << 12) - 1,
-            (1 << 13) - 1,
-            (1 << 14) - 1,
-            (1 << 15) - 1,
-            (1 << 16) - 1,
-            (1 << 17) - 1,
-            (1 << 18) - 1,
-            (1 << 19) - 1,
-            (1 << 20) - 1,
-            (1 << 21) - 1,
-            (1 << 22) - 1,
-            (1 << 23) - 1,
-            (1 << 24) - 1,
-            (1 << 25) - 1,
-            (1 << 26) - 1,
-            (1 << 27) - 1,
-            (1 << 28) - 1,
-            (1 << 29) - 1,
-            (1 << 30) - 1,
-            (1u << 31) - 1,
-            (1ull << 32) - 1,
-        };
-        
-        r--;
-        val >>= r;
-        val &= (masks[l - r]);
+        val <<= 32 - l;
+        val >>= 31 - (l - r);
         return val;
     }
 
@@ -547,11 +510,29 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sltu(x, y));
     }
+    void xori(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::xor_(x, y));
+    }
     void ori(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::or_(x, y));
+    }
+    void andi(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::and_(x, y));
+    }
+    void slli(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::sll(x, y));
     }
 
     void sr(Decoder *d)
@@ -584,7 +565,6 @@ class Core
         }
     }
 
-    //TO DO
     void alui(Decoder *d)
     {
         switch (static_cast<ALUI_Inst>(d->funct3()))
@@ -595,9 +575,23 @@ class Core
         case ALUI_Inst::SLTI:
             slti(d);
             break; 
+        case ALUI_Inst::SLTIU:
+            sltiu(d);
+            break; 
+        case ALUI_Inst::XORI:
+            xori(d);
+            break;  
         case ALUI_Inst::ORI:
             ori(d);
             break; 
+        case ALUI_Inst::ANDI:
+            andi(d);
+            break; 
+        case ALUI_Inst::SLLI:
+            slli(d);
+            break; 
+
+
         default:
             error_dump("対応していないfunct3: %x\n", d->funct3());
         }
