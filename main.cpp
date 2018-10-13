@@ -322,7 +322,7 @@ class Decoder
     }
     uint32_t s_type_imm()
     {
-        int32_t ret = (bit_range(code, 32, 25) << 5) | (bit_range(code, 12, 7));
+        int32_t ret = (bit_range(code, 32, 26) << 5) | (bit_range(code, 12, 8));
         ret <<= 20;
         ret >>= 20;
         return ret;
