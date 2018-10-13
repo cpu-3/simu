@@ -356,9 +356,12 @@ class Decoder
     {
         return bit_range(code, 32, 26);
     }
-    uint16_t s_type_imm()
+    uint32_t s_type_imm()
     {
-        return (bit_range(code, 32, 26) << 5) | (bit_range(code, 12, 8));
+        int32_t ret = (bit_range(code, 25, 32) << 5) | (bit_range(code, 7, 12));
+        ret <<= 20;
+        ret >>= 20;
+        return ret;
     }
     uint32_t u_type_imm()
     {
@@ -665,8 +668,8 @@ class Core
     {
         uint32_t base = r->get_ireg(d->rs1());
         uint32_t src = r->get_ireg(d->rs2());
-        uint32_t y = d->s_type_imm();
-        uint32_t addr = base + y;
+        int32_t y = d->s_type_imm();
+        uint32_t addr = (int32_t)base + y;
         m->write_mem(addr, src);
     }
 
@@ -690,7 +693,6 @@ class Core
         uint32_t base = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         uint32_t addr = base + y;
-        std::cout << base << " " << y << std::endl;
         uint32_t val = m->read_mem_4(addr);
         r->set_ireg(d->rd(), val);
     }
@@ -784,6 +786,8 @@ class Core
             Decoder d = Decoder(m->get_inst(ip));
             printf("instr: %x\n", d.code);
             run(&d);
+            //std::string s;
+            //std::getline(std::cin, s);
         }
     }
 };
