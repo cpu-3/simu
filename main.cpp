@@ -361,11 +361,38 @@ class Decoder
     }
 };
 
+class Settings
+{
+    public:
+    bool step_execution;
+    bool show_stack;
+    bool show_registers;
+
+    Settings(const char *cmd_arg) {
+        step_execution = false;
+        show_stack = false;
+        show_registers = false;
+
+        for (const char *c = &cmd_arg[0]; *c; c++) {
+            switch (*c) {
+            case 's':
+                step_execution = true;
+            case 't':
+                show_stack = true;
+            case 'r':
+                show_registers = true;
+            }
+        }
+    }
+};
+
 class Core
 {
     const uint32_t instruction_load_address = 0;
     Memory *m;
     Register *r;
+
+    Settings *settings;
 
     void add(Decoder *d)
     {
@@ -831,10 +858,12 @@ class Core
     }
 
   public:
-    Core(std::string filename)
+    Core(std::string filename, Settings *settings)
     {
         r = new Register;
         m = new Memory;
+
+        this->settings = settings;
 
         char buf[512];
         std::ifstream ifs(filename);
@@ -861,20 +890,23 @@ class Core
             Decoder d = Decoder(m->get_inst(ip));
             printf("instr: %x\n", d.code);
             run(&d);
-            //std::string s;
-            //std::getline(std::cin, s);
+            std::string s;
+            std::getline(std::cin, s);
         }
     }
 };
 
-int main(int argc, char **argv)
+
+
+int main(int argc, const char **argv)
 {
     if (argc == 1)
     {
         std::cout << "Usage: " << argv[0] << " program file" << std::endl;
         return 0;
     }
-    Core core((std::string(argv[1])));
+    Settings s = Settings(argc == 2 ? "" : argv[2]);
+    Core core((std::string(argv[1])), &s);
     core.main_loop();
     return 0;
 }
