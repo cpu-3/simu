@@ -187,23 +187,24 @@ class ALU
 
 class FPU
 {
-    static float add(float x, float y)
+  public:
+    static float fadd(float x, float y)
     {
         return x + y;
     }
-    static float sub(float x, float y)
+    static float fsub(float x, float y)
     {
         return x - y;
     }
-    static float mul(float x, float y)
+    static float fmul(float x, float y)
     {
         return x * y;
     }
-    static float div(float x, float y)
+    static float fdiv(float x, float y)
     {
         return x / y;
     }
-    static float sqrt(float x)
+    static float fsqrt(float x)
     {
         return std::sqrt(x);
     }
@@ -222,11 +223,12 @@ class Register
         {
             error_dump("レジスタの番号が不正です: %d\n", name);
         }
-
+/*
         if (write && name == 0)
         {
             warn_dump("レジスタ0に書き込もうとしていますが\n");
         }
+        */
     }
     static void check_freg_name(int name)
     {
@@ -281,7 +283,7 @@ class Register
 
 class Decoder
 {
-    // get val's [l, r) bit value
+    // get val's [l, r] bit value
     // ex) bit_range(00010011, 7, 1) -> 00010011
     uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r)
     {
@@ -436,7 +438,6 @@ class Core
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
     
-    //TODO fsub, fmul, fdiv, fsqrt
     void fadd(Decoder *d)
     {
         if(d->rm() != 0){
@@ -444,7 +445,49 @@ class Core
         }
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::srl(x, y));
+        r->set_ireg(d->rd(), FPU::fadd(x, y));
+    }
+
+    void fsub(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fsub(x, y));
+    }
+
+    void fmul(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fmul(x, y));
+    }
+
+    void fdiv(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fdiv(x, y));
+    }
+
+    void fsqrt(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        if(d->rs2() != 0){
+          error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        r->set_ireg(d->rd(), FPU::fsqrt(x));
     }
 
     void lui(Decoder *d)
@@ -646,6 +689,32 @@ class Core
         }
     }
 
+    void fpu(Decoder *d)
+    {
+        switch (static_cast<FPU_Inst>(d->funct5_fmt()))
+        {
+        case FPU_Inst::FADD:
+            fadd(d);
+            break;
+        case FPU_Inst::FSUB:
+            fsub(d);
+            break;
+        case FPU_Inst::FMUL:
+            fmul(d);
+            break;
+        case FPU_Inst::FDIV:
+            fdiv(d);
+            break;
+        case FPU_Inst::FSQRT:
+            fsqrt(d);
+            break;
+        default:
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
+        }
+    }
+
+
+
     void branch(Decoder *d)
     {
         switch (static_cast<Branch_Inst>(d->funct3()))
@@ -841,14 +910,10 @@ class Core
             alu(d);
             r->ip += 4;
             break;
-        
-//TODO implement fpu(d)
-/*
         case Inst::FPU:
             fpu(d);
             r->ip += 4;
             break;
-*/
         default:
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
             r->ip += 4;
