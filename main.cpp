@@ -40,6 +40,7 @@ class Memory
     static const uint32_t IO_mem_lim = 0x10fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
+
     uint8_t memory[memory_size];
 
     void addr_alignment_check(uint32_t addr)
@@ -133,6 +134,18 @@ class Memory
         for (int i = 0; i < length; i++)
         {
             memory[addr + i] = data[i];
+        }
+    }
+
+    void show_data(uint32_t addr, uint32_t length) 
+    {
+        int cnt = 0;
+        for (uint32_t ad = addr; ad < addr + length; ad += 4) {
+            if (ad + 4 >= memory_lim) {
+                break;
+            }
+            uint32_t v = read_mem_4(ad);
+            printf("%08x: %08x\n", ad, v);
         }
     }
 };
@@ -266,16 +279,18 @@ class Register
     }
     void info()
     {
+        std::cout << std::hex;
         std::cout << "ip: " << ip << std::endl;
         for (int i = 0; i < ireg_size; i++)
         {
-            std::cout << "x" << i << ": " << i_registers[i] << " ";
+            std::cout << std::dec << "x" << i << std::hex << ": " << i_registers[i] << " ";
             if (i % 6 == 5)
             {
                 std::cout << std::endl;
             }
         }
         std::cout << std::endl;
+        std::cout << std::dec;
     }
 };
 
@@ -389,6 +404,8 @@ class Settings
 class Core
 {
     const uint32_t instruction_load_address = 0;
+    const int default_stack_pointer = 2;
+    const int default_stack_dump_size = 48;
     Memory *m;
     Register *r;
 
@@ -616,7 +633,6 @@ class Core
             slli(d);
             break; 
 
-
         default:
             error_dump("対応していないfunct3: %x\n", d->funct3());
         }
@@ -812,7 +828,6 @@ class Core
         }
     }
 
-
     void run(Decoder *d)
     {
         switch (static_cast<Inst>(d->opcode()))
@@ -886,16 +901,22 @@ class Core
         while (1)
         {
             uint32_t ip = r->ip;
-            r->info();
             Decoder d = Decoder(m->get_inst(ip));
             printf("instr: %x\n", d.code);
             run(&d);
-            std::string s;
-            std::getline(std::cin, s);
+            if (settings->step_execution) {
+                std::string s;
+                std::getline(std::cin, s);
+            }
+            if (settings->show_registers) {
+                r->info();
+            }
+            if (settings->show_stack) {
+                m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+            }
         }
     }
 };
-
 
 
 int main(int argc, const char **argv)
