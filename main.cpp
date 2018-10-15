@@ -128,7 +128,7 @@ class Memory
     // set instructions to memory
     // inst_memが満杯になって死ぬとかないのかな(wakarazu)
     void mmap(uint32_t addr, uint8_t *data, uint32_t length)
-    { 
+    {
         addr_alignment_check(addr);
         addr_alignment_check(length);
         for (int i = 0; i < length; i++)
@@ -137,7 +137,7 @@ class Memory
         }
     }
 
-    void show_data(uint32_t addr, uint32_t length) 
+    void show_data(uint32_t addr, uint32_t length)
     {
         int cnt = 0;
         for (uint32_t ad = addr; ad < addr + length; ad += 4) {
@@ -200,23 +200,24 @@ class ALU
 
 class FPU
 {
-    static float add(float x, float y)
+  public:
+    static float fadd(float x, float y)
     {
         return x + y;
     }
-    static float sub(float x, float y)
+    static float fsub(float x, float y)
     {
         return x - y;
     }
-    static float mul(float x, float y)
+    static float fmul(float x, float y)
     {
         return x * y;
     }
-    static float div(float x, float y)
+    static float fdiv(float x, float y)
     {
         return x / y;
     }
-    static float sqrt(float x)
+    static float fsqrt(float x)
     {
         return std::sqrt(x);
     }
@@ -235,11 +236,12 @@ class Register
         {
             error_dump("レジスタの番号が不正です: %d\n", name);
         }
-
+/*
         if (write && name == 0)
         {
             warn_dump("レジスタ0に書き込もうとしていますが\n");
         }
+        */
     }
     static void check_freg_name(int name)
     {
@@ -296,7 +298,7 @@ class Register
 
 class Decoder
 {
-    // get val's [l, r) bit value
+    // get val's [l, r] bit value
     // ex) bit_range(00010011, 7, 1) -> 00010011
     uint32_t bit_range(uint32_t val, uint8_t l, uint8_t r)
     {
@@ -319,6 +321,10 @@ class Decoder
     {
         return bit_range(code, 12, 8);
     }
+    uint8_t rm()
+    {
+        return bit_range(code, 15, 13);
+    }
     uint8_t rs1()
     {
         return bit_range(code, 20, 16);
@@ -330,6 +336,10 @@ class Decoder
     uint8_t funct3()
     {
         return bit_range(code, 15, 13);
+    }
+    uint8_t funct5_fmt()
+    {
+        return bit_range(code, 32, 26);
     }
     uint16_t funct7()
     {
@@ -471,6 +481,59 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
+
+    void fadd(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fadd(x, y));
+    }
+
+    void fsub(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fsub(x, y));
+    }
+
+    void fmul(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fmul(x, y));
+    }
+
+    void fdiv(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_ireg(d->rd(), FPU::fdiv(x, y));
+    }
+
+    void fsqrt(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        if(d->rs2() != 0){
+          error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        r->set_ireg(d->rd(), FPU::fsqrt(x));
+    }
+
     void lui(Decoder *d)
     {
         uint32_t val = d->u_type_imm();
@@ -539,7 +602,7 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::add(x, y));
-    } 
+    }
     void slti(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
@@ -616,25 +679,24 @@ class Core
             break;
         case ALUI_Inst::SLTI:
             slti(d);
-            break; 
+            break;
         case ALUI_Inst::SLTIU:
             sltiu(d);
-            break; 
+            break;
         case ALUI_Inst::XORI:
             xori(d);
-            break;  
+            break;
         case ALUI_Inst::ORI:
             ori(d);
-            break; 
+            break;
         case ALUI_Inst::ANDI:
             andi(d);
-            break; 
+            break;
         case ALUI_Inst::SLLI:
             slli(d);
-            break; 
-
+            break;
         default:
-            error_dump("対応していないfunct3: %x\n", d->funct3());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
 
@@ -667,9 +729,35 @@ class Core
             and_(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
+
+    void fpu(Decoder *d)
+    {
+        switch (static_cast<FPU_Inst>(d->funct5_fmt()))
+        {
+        case FPU_Inst::FADD:
+            fadd(d);
+            break;
+        case FPU_Inst::FSUB:
+            fsub(d);
+            break;
+        case FPU_Inst::FMUL:
+            fmul(d);
+            break;
+        case FPU_Inst::FDIV:
+            fdiv(d);
+            break;
+        case FPU_Inst::FSQRT:
+            fsqrt(d);
+            break;
+        default:
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
+        }
+    }
+
+
 
     void branch(Decoder *d)
     {
@@ -694,10 +782,10 @@ class Core
             bgeu(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
- 
+
     void lb(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
@@ -822,7 +910,7 @@ class Core
             sw(d);
             break;
         default:
-            error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
             r->ip += 4;
             break;
         }
@@ -832,23 +920,6 @@ class Core
     {
         switch (static_cast<Inst>(d->opcode()))
         {
-        case Inst::ALU:
-            alu(d);
-            r->ip += 4;
-            break;
-        case Inst::ALUI:
-            alui(d);
-            r->ip += 4;
-            break;
-        case Inst::BRANCH:
-            branch(d);
-            break;
-        case Inst::JAL:
-            jal(d);
-            break;
-        case Inst::JALR:
-            jalr(d);
-            break;
         case Inst::LUI:
             lui(d);
             r->ip += 4;
@@ -857,12 +928,33 @@ class Core
             auipc(d);
             r->ip += 4;
             break;
+        case Inst::JAL:
+            jal(d);
+            break;
+        case Inst::JALR:
+            jalr(d);
+            break;
+        case Inst::BRANCH:
+            branch(d);
+            break;
+        case Inst::LOAD:
+            load(d);
+            r->ip += 4;
+            break;
         case Inst::STORE:
             store(d);
             r->ip += 4;
             break;
-        case Inst::LOAD:
-            load(d);
+        case Inst::ALUI:
+            alui(d);
+            r->ip += 4;
+            break;
+        case Inst::ALU:
+            alu(d);
+            r->ip += 4;
+            break;
+        case Inst::FPU:
+            fpu(d);
             r->ip += 4;
             break;
         default:

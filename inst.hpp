@@ -11,6 +11,7 @@ enum struct Inst : uint8_t {
     FENCE   = 0b0001111,
     ECALL   = 0b1110011,
     EBREAK  = 0b1110011,
+    FPU     = 0b1010011,
 };
 
 enum struct ALUI_Inst : uint8_t{
@@ -30,14 +31,22 @@ enum struct ALUI_SRL_Inst : uint8_t {
 };
 
 enum struct ALU_Inst : uint8_t{
-    ADD_SUB = 0,
-    SLL,
-    SLT,
-    SLTU,
-    XOR,
-    SR,
-    OR,
-    AND,
+    ADD_SUB = 0b000,
+    SLL     = 0b001,
+    SLT     = 0b010,
+    SLTU    = 0b011,
+    XOR     = 0b100,
+    SR      = 0b101,
+    OR      = 0b110,
+    AND     = 0b111,
+};
+
+enum struct FPU_Inst : uint8_t{
+    FADD  = 0b0000000,
+    FSUB  = 0b0000100,
+    FMUL  = 0b0001000,
+    FDIV  = 0b0001100,
+    FSQRT = 0b0101100,
 };
 
 enum struct ALU_ADD_SUB_Inst : uint8_t {
