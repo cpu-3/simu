@@ -24,6 +24,33 @@ void warn_dump(const char *fmt, ...)
     va_end(ap);
 }
 
+class IO
+{
+    uint8_t led;
+
+  public:
+    void show_status()
+    {
+        printf("LED: %02x\n", led);
+    }
+    void write_led(uint8_t val)
+    {
+        led = val;
+    }
+
+    void transmit_uart(uint8_t val)
+    {
+        std::cout << std::hex << val << std::dec << std::endl;
+    }
+
+    uint8_t receive_uart()
+    {
+        uint8_t val;
+        std::cin >> val;
+        return val;
+    }
+};
+
 class Memory
 {
     /* Current Memory Map
@@ -40,8 +67,14 @@ class Memory
     static const uint32_t IO_mem_lim = 0x10fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
+    
+    static const uint32_t uart_rx_addr = 0x10000;
+    static const uint32_t uart_tx_addr = 0x10004;
+    static const uint32_t led_addr = 0x10008;
 
     uint8_t memory[memory_size];
+    IO *io;
+
 
     void addr_alignment_check(uint32_t addr)
     {
@@ -77,35 +110,101 @@ class Memory
         }
     }
 
+    bool hook_io_write(uint32_t addr, uint8_t val)
+    {
+        if (addr == uart_rx_addr)
+        {
+            error_dump("uartの読み込みポートに書き込みを試みました");
+            return true;
+        }
+        else if (addr == uart_tx_addr)
+        {
+            io->transmit_uart(val);
+        }
+        else if (addr == led_addr)
+        {
+            io->write_led(val);
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
+
+    bool hook_io_read(uint32_t addr, uint8_t *v)
+    {
+        if (addr == uart_rx_addr)
+        {
+            *v = io->receive_uart();
+        }
+        else if (addr == uart_tx_addr)
+        {
+            error_dump("uartの書き込みポートを読み込もうとしました");
+        }
+        else if (addr == led_addr)
+        {
+            error_dump("ledの値を読み取ろうとしました");
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
+
   public:
+    Memory(IO *io) {
+        this->io = io;
+    }
+
     void write_mem(uint32_t addr, uint8_t val)
     {
-        data_mem_check(addr, 1);
-        memory[addr] = val;
+        if (!hook_io_write(addr, val)) 
+        {
+            data_mem_check(addr, 1);
+            memory[addr] = val;
+        }
     }
 
     void write_mem(uint32_t addr, uint16_t val)
     {
-        data_mem_check(addr, 2);
-        uint16_t *m = (uint16_t *)memory;
-        m[addr / 2] = val;
+        if (!hook_io_write(addr, val)) 
+        {
+            data_mem_check(addr, 2);
+            uint16_t *m = (uint16_t *)memory;
+            m[addr / 2] = val;
+        }
     }
 
     void write_mem(uint32_t addr, uint32_t val)
     {
-        data_mem_check(addr, 4);
-        uint32_t *m = (uint32_t *)memory;
-        m[addr / 4] = val;
+        if (!hook_io_write(addr, val)) 
+        {
+            data_mem_check(addr, 4);
+            uint32_t *m = (uint32_t *)memory;
+            m[addr / 4] = val;
+        }
     }
 
     uint8_t read_mem_1(uint32_t addr)
     {
+        uint8_t v;
+        if (hook_io_read(addr, &v)) 
+        { 
+            return v;
+        }
         data_mem_check(addr, 1);
         return memory[addr];
     }
 
     uint16_t read_mem_2(uint32_t addr)
     {
+        uint8_t v;
+        if (hook_io_read(addr, &v)) 
+        { 
+            return v;
+        }
         data_mem_check(addr, 2);
         uint16_t *m = (uint16_t *)memory;
         return m[addr / 2];
@@ -113,6 +212,11 @@ class Memory
 
     uint32_t read_mem_4(uint32_t addr)
     {
+        uint8_t v;
+        if (hook_io_read(addr, &v)) 
+        { 
+            return v;
+        }
         data_mem_check(addr, 4);
         uint32_t *m = (uint32_t *)memory;
         return m[addr / 4];
@@ -392,20 +496,39 @@ class Settings
     bool step_execution;
     bool show_stack;
     bool show_registers;
+    bool show_inst_value;
+    bool show_io;
 
     Settings(const char *cmd_arg) {
         step_execution = false;
         show_stack = false;
         show_registers = false;
+        show_inst_value = false;
+        show_io = false;
 
         for (const char *c = &cmd_arg[0]; *c; c++) {
             switch (*c) {
             case 's':
                 step_execution = true;
+                break;
             case 't':
                 show_stack = true;
+                break;
             case 'r':
                 show_registers = true;
+                break;
+            case 'i':
+                show_inst_value = true;
+                break;
+            case 'o':
+                show_io = true;
+                break;
+            case 'a':
+                step_execution = true;
+                show_stack = true;
+                show_registers = true;
+                show_inst_value = true;
+                show_io = true;
             }
         }
     }
@@ -418,6 +541,7 @@ class Core
     const int default_stack_dump_size = 48;
     Memory *m;
     Register *r;
+    IO *io;
 
     Settings *settings;
 
@@ -968,7 +1092,8 @@ class Core
     Core(std::string filename, Settings *settings)
     {
         r = new Register;
-        m = new Memory;
+        io = new IO;
+        m = new Memory(io);
 
         this->settings = settings;
 
@@ -987,6 +1112,7 @@ class Core
     {
         delete r;
         delete m;
+        delete io;
     }
     void main_loop()
     {
@@ -995,12 +1121,17 @@ class Core
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
-            printf("instr: %x\n", d.code);
+            if (settings->show_inst_value) {
+                printf("instr: %x\n", d.code);
+            }
             if (settings->show_registers) {
                 r->info();
             }
             if (settings->show_stack) {
                 m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+            }
+            if (settings->show_io) {
+                io->show_status();
             }
             if (settings->step_execution) {
                 std::string s;
