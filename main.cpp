@@ -40,6 +40,7 @@ class Memory
     static const uint32_t IO_mem_lim = 0x10fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
+
     uint8_t memory[memory_size];
 
     void addr_alignment_check(uint32_t addr)
@@ -127,12 +128,24 @@ class Memory
     // set instructions to memory
     // inst_memが満杯になって死ぬとかないのかな(wakarazu)
     void mmap(uint32_t addr, uint8_t *data, uint32_t length)
-    { 
+    {
         addr_alignment_check(addr);
         addr_alignment_check(length);
         for (int i = 0; i < length; i++)
         {
             memory[addr + i] = data[i];
+        }
+    }
+
+    void show_data(uint32_t addr, uint32_t length)
+    {
+        int cnt = 0;
+        for (uint32_t ad = addr; ad < addr + length; ad += 4) {
+            if (ad + 4 >= memory_lim) {
+                break;
+            }
+            uint32_t v = read_mem_4(ad);
+            printf("%08x: %08x\n", ad, v);
         }
     }
 };
@@ -268,16 +281,18 @@ class Register
     }
     void info()
     {
+        std::cout << std::hex;
         std::cout << "ip: " << ip << std::endl;
         for (int i = 0; i < ireg_size; i++)
         {
-            std::cout << "x" << i << ": " << i_registers[i] << " ";
+            std::cout << std::dec << "x" << i << std::hex << ": " << i_registers[i] << " ";
             if (i % 6 == 5)
             {
                 std::cout << std::endl;
             }
         }
         std::cout << std::endl;
+        std::cout << std::dec;
     }
 };
 
@@ -309,7 +324,7 @@ class Decoder
     uint8_t rm()
     {
         return bit_range(code, 15, 13);
-    } 
+    }
     uint8_t rs1()
     {
         return bit_range(code, 20, 16);
@@ -371,11 +386,40 @@ class Decoder
     }
 };
 
+class Settings
+{
+    public:
+    bool step_execution;
+    bool show_stack;
+    bool show_registers;
+
+    Settings(const char *cmd_arg) {
+        step_execution = false;
+        show_stack = false;
+        show_registers = false;
+
+        for (const char *c = &cmd_arg[0]; *c; c++) {
+            switch (*c) {
+            case 's':
+                step_execution = true;
+            case 't':
+                show_stack = true;
+            case 'r':
+                show_registers = true;
+            }
+        }
+    }
+};
+
 class Core
 {
     const uint32_t instruction_load_address = 0;
+    const int default_stack_pointer = 2;
+    const int default_stack_dump_size = 48;
     Memory *m;
     Register *r;
+
+    Settings *settings;
 
     void add(Decoder *d)
     {
@@ -437,7 +481,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
-    
+
     void fadd(Decoder *d)
     {
         if(d->rm() != 0){
@@ -558,7 +602,7 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::add(x, y));
-    } 
+    }
     void slti(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
@@ -635,22 +679,22 @@ class Core
             break;
         case ALUI_Inst::SLTI:
             slti(d);
-            break; 
+            break;
         case ALUI_Inst::SLTIU:
             sltiu(d);
-            break; 
+            break;
         case ALUI_Inst::XORI:
             xori(d);
-            break;  
+            break;
         case ALUI_Inst::ORI:
             ori(d);
-            break; 
+            break;
         case ALUI_Inst::ANDI:
             andi(d);
-            break; 
+            break;
         case ALUI_Inst::SLLI:
             slli(d);
-            break; 
+            break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
@@ -741,7 +785,7 @@ class Core
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
     }
- 
+
     void lb(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
@@ -872,7 +916,6 @@ class Core
         }
     }
 
-
     void run(Decoder *d)
     {
         switch (static_cast<Inst>(d->opcode()))
@@ -922,10 +965,12 @@ class Core
     }
 
   public:
-    Core(std::string filename)
+    Core(std::string filename, Settings *settings)
     {
         r = new Register;
         m = new Memory;
+
+        this->settings = settings;
 
         char buf[512];
         std::ifstream ifs(filename);
@@ -948,24 +993,33 @@ class Core
         while (1)
         {
             uint32_t ip = r->ip;
-            r->info();
             Decoder d = Decoder(m->get_inst(ip));
-            printf("instr: %x\n", d.code);
             run(&d);
-            //std::string s;
-            //std::getline(std::cin, s);
+            printf("instr: %x\n", d.code);
+            if (settings->show_registers) {
+                r->info();
+            }
+            if (settings->show_stack) {
+                m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+            }
+            if (settings->step_execution) {
+                std::string s;
+                std::getline(std::cin, s);
+            }
         }
     }
 };
 
-int main(int argc, char **argv)
+
+int main(int argc, const char **argv)
 {
     if (argc == 1)
     {
         std::cout << "Usage: " << argv[0] << " program file" << std::endl;
         return 0;
     }
-    Core core((std::string(argv[1])));
+    Settings s = Settings(argc == 2 ? "" : argv[2]);
+    Core core((std::string(argv[1])), &s);
     core.main_loop();
     return 0;
 }
