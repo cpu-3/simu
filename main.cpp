@@ -530,7 +530,6 @@ class Settings
                 show_io = true;
                 break;
             case 'a':
-                step_execution = true;
                 show_stack = true;
                 show_registers = true;
                 show_inst_value = true;
@@ -1144,6 +1143,7 @@ class Core
             r->ip += 4;
             break;
         default:
+            info();
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
             r->ip += 4;
             break;
@@ -1175,6 +1175,11 @@ class Core
         delete r;
         delete m;
         delete io;
+    }
+    void info() {
+        r->info();
+        m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+        io->show_status();
     }
     void main_loop()
     {
