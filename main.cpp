@@ -266,6 +266,12 @@ class Register
         }
         return i_registers[name];
     }
+    uint32_t get_freg(int name)
+    {
+        check_freg_name(name);
+        return f_registers[name];
+    }
+
     void info()
     {
         std::cout << "ip: " << ip << std::endl;
@@ -354,8 +360,8 @@ class Decoder
                       (bit_range(code, 8, 8) << 11) +
                       (bit_range(code, 31, 26) << 5) +
                       (bit_range(code, 12, 9) << 1);
-        ret <<= 19;
-        ret >>= 19;
+        ret <<= 20;
+        ret >>= 20;
         return ret;
     }
     int32_t jal_imm()
@@ -438,58 +444,6 @@ class Core
         r->set_ireg(d->rd(), ALU::srl(x, y));
     }
     
-    void fadd(Decoder *d)
-    {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
-        }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), FPU::fadd(x, y));
-    }
-
-    void fsub(Decoder *d)
-    {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
-        }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), FPU::fsub(x, y));
-    }
-
-    void fmul(Decoder *d)
-    {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
-        }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), FPU::fmul(x, y));
-    }
-
-    void fdiv(Decoder *d)
-    {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
-        }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), FPU::fdiv(x, y));
-    }
-
-    void fsqrt(Decoder *d)
-    {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
-        }
-        if(d->rs2() != 0){
-          error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
-        }
-        uint32_t x = r->get_ireg(d->rs1());
-        r->set_ireg(d->rd(), FPU::fsqrt(x));
-    }
-
     void lui(Decoder *d)
     {
         uint32_t val = d->u_type_imm();
@@ -689,32 +643,6 @@ class Core
         }
     }
 
-    void fpu(Decoder *d)
-    {
-        switch (static_cast<FPU_Inst>(d->funct5_fmt()))
-        {
-        case FPU_Inst::FADD:
-            fadd(d);
-            break;
-        case FPU_Inst::FSUB:
-            fsub(d);
-            break;
-        case FPU_Inst::FMUL:
-            fmul(d);
-            break;
-        case FPU_Inst::FDIV:
-            fdiv(d);
-            break;
-        case FPU_Inst::FSQRT:
-            fsqrt(d);
-            break;
-        default:
-            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
-        }
-    }
-
-
-
     void branch(Decoder *d)
     {
         switch (static_cast<Branch_Inst>(d->funct3()))
@@ -763,7 +691,7 @@ class Core
         r->set_ireg(d->rd(), val);
     }
     void lw(Decoder *d)
-    {
+    { 
         uint32_t base = r->get_ireg(d->rs1());
         int32_t offset = d->i_type_imm();
         offset <<= 20;
@@ -872,6 +800,132 @@ class Core
         }
     }
 
+    void flw(Decoder *d)
+    { 
+        uint32_t base = r->get_ireg(d->rs1());
+        int32_t offset = d->i_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        uint32_t val = m->read_mem_4(addr);
+        r->set_freg(d->rd(), val);
+    }
+ 
+    void fload(Decoder *d)
+    {
+        switch (static_cast<FLoad_Inst>(d->funct3()))
+        {
+        case FLoad_Inst::FLW:
+            flw(d);
+            break;
+        default:
+            error_dump("widthがおかしいです(仕様書p112): %x\n", d->funct3());
+            r->ip += 4;
+            break;
+        }
+    }
+
+    void fsw(Decoder *d)
+    {
+        uint32_t base = r->get_ireg(d->rs1());
+        uint32_t src = r->get_freg(d->rs2());
+        int32_t offset = d->s_type_imm();
+        offset <<= 20;
+        offset >>= 20;
+        uint32_t addr = base + offset;
+        m->write_mem(addr, src);
+    }
+
+    void fstore(Decoder *d)
+    {
+        switch (static_cast<FStore_Inst>(d->funct3()))
+        {
+        case FStore_Inst::FSW:
+            fsw(d);
+            break;
+        default:
+            error_dump("widthがおかしいです(仕様書p112): %x\n", d->funct3());
+            r->ip += 4;
+            break;
+        }
+    }
+
+    void fadd(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_freg(d->rd(), FPU::fadd(x, y));
+    }
+
+    void fsub(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_freg(d->rd(), FPU::fsub(x, y));
+    }
+
+    void fmul(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_freg(d->rd(), FPU::fmul(x, y));
+    }
+
+    void fdiv(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = r->get_ireg(d->rs2());
+        r->set_freg(d->rd(), FPU::fdiv(x, y));
+    }
+
+    void fsqrt(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        if(d->rs2() != 0){
+          error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        r->set_freg(d->rd(), FPU::fsqrt(x));
+    }
+
+    void fpu(Decoder *d)
+    {
+        switch (static_cast<FPU_Inst>(d->funct5_fmt()))
+        {
+        case FPU_Inst::FADD:
+            fadd(d);
+            break;
+        case FPU_Inst::FSUB:
+            fsub(d);
+            break;
+        case FPU_Inst::FMUL:
+            fmul(d);
+            break;
+        case FPU_Inst::FDIV:
+            fdiv(d);
+            break;
+        case FPU_Inst::FSQRT:
+            fsqrt(d);
+            break;
+        default:
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
+        }
+    }
+
 
     void run(Decoder *d)
     {
@@ -908,6 +962,14 @@ class Core
             break;
         case Inst::ALU:
             alu(d);
+            r->ip += 4;
+            break;
+        case Inst::FLOAD:
+            fload(d);
+            r->ip += 4;
+            break;
+        case Inst::FSTORE:
+            fstore(d);
             r->ip += 4;
             break;
         case Inst::FPU:
