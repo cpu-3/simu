@@ -902,17 +902,17 @@ class Core
         {
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
-            printf("instr: %x\n", d.code);
             run(&d);
-            if (settings->step_execution) {
-                std::string s;
-                std::getline(std::cin, s);
-            }
+            printf("instr: %x\n", d.code);
             if (settings->show_registers) {
                 r->info();
             }
             if (settings->show_stack) {
                 m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+            }
+            if (settings->step_execution) {
+                std::string s;
+                std::getline(std::cin, s);
             }
         }
     }
