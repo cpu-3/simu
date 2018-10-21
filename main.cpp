@@ -67,7 +67,7 @@ class Memory
     static const uint32_t IO_mem_lim = 0x10fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
-    
+
     static const uint32_t uart_rx_addr = 0x10000;
     static const uint32_t uart_tx_addr = 0x10004;
     static const uint32_t led_addr = 0x10008;
@@ -160,7 +160,7 @@ class Memory
 
     void write_mem(uint32_t addr, uint8_t val)
     {
-        if (!hook_io_write(addr, val)) 
+        if (!hook_io_write(addr, val))
         {
             data_mem_check(addr, 1);
             memory[addr] = val;
@@ -169,7 +169,7 @@ class Memory
 
     void write_mem(uint32_t addr, uint16_t val)
     {
-        if (!hook_io_write(addr, val)) 
+        if (!hook_io_write(addr, val))
         {
             data_mem_check(addr, 2);
             uint16_t *m = (uint16_t *)memory;
@@ -179,7 +179,7 @@ class Memory
 
     void write_mem(uint32_t addr, uint32_t val)
     {
-        if (!hook_io_write(addr, val)) 
+        if (!hook_io_write(addr, val))
         {
             data_mem_check(addr, 4);
             uint32_t *m = (uint32_t *)memory;
@@ -190,8 +190,8 @@ class Memory
     uint8_t read_mem_1(uint32_t addr)
     {
         uint8_t v;
-        if (hook_io_read(addr, &v)) 
-        { 
+        if (hook_io_read(addr, &v))
+        {
             return v;
         }
         data_mem_check(addr, 1);
@@ -201,8 +201,8 @@ class Memory
     uint16_t read_mem_2(uint32_t addr)
     {
         uint8_t v;
-        if (hook_io_read(addr, &v)) 
-        { 
+        if (hook_io_read(addr, &v))
+        {
             return v;
         }
         data_mem_check(addr, 2);
@@ -213,8 +213,8 @@ class Memory
     uint32_t read_mem_4(uint32_t addr)
     {
         uint8_t v;
-        if (hook_io_read(addr, &v)) 
-        { 
+        if (hook_io_read(addr, &v))
+        {
             return v;
         }
         data_mem_check(addr, 4);
@@ -684,7 +684,13 @@ class Core
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
-        r->set_ireg(d->rd(), ALU::sltu(x, y));
+        r->set_ireg(d->rd(), ALU::slt(x, y));
+    }
+    void srli(Decoder *d)
+    {
+        uint32_t x = r->get_ireg(d->rs1());
+        uint32_t y = d->i_type_imm();
+        r->set_ireg(d->rd(), ALU::srl(x, y));
     }
     void sltiu(Decoder *d)
     {
@@ -772,6 +778,9 @@ class Core
         case ALUI_Inst::SLLI:
             slli(d);
             break;
+        case ALUI_Inst::SRLI:
+            srli(d);
+            break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
@@ -858,7 +867,7 @@ class Core
         r->set_ireg(d->rd(), val);
     }
     void lw(Decoder *d)
-    { 
+    {
         uint32_t base = r->get_ireg(d->rs1());
         int32_t offset = d->i_type_imm();
         offset <<= 20;
@@ -968,7 +977,7 @@ class Core
     }
 
     void flw(Decoder *d)
-    { 
+    {
         uint32_t base = r->get_ireg(d->rs1());
         int32_t offset = d->i_type_imm();
         offset <<= 20;
@@ -977,7 +986,7 @@ class Core
         uint32_t val = m->read_mem_4(addr);
         r->set_freg(d->rd(), val);
     }
- 
+
     void fload(Decoder *d)
     {
         switch (static_cast<FLoad_Inst>(d->funct3()))

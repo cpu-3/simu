@@ -18,13 +18,13 @@ enum struct Inst : uint8_t {
 
 enum struct ALUI_Inst : uint8_t{
     ADDI  = 0b000,
-    SLTI  = 0b010,    
-    SLTIU = 0b011,    
-    XORI  = 0b100,    
-    ORI   = 0b110,    
-    ANDI  = 0b111,    
-    SLLI  = 0b001,    
-    SRL_LA  = 0b101,    
+    SLTI  = 0b010,
+    SLTIU = 0b011,
+    XORI  = 0b100,
+    ORI   = 0b110,
+    ANDI  = 0b111,
+    SLLI  = 0b001,
+    SRLI  = 0b101,
 };
 
 enum struct ALUI_SRL_Inst : uint8_t {
