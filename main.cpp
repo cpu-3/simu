@@ -679,7 +679,7 @@ class Core
     }
     void blt(Decoder *d)
     {
-        branch_inner(d, (int64_t)r->get_ireg(d->rs1()) < (int64_t)r->get_ireg(d->rs2()));
+        branch_inner(d, (int32_t)r->get_ireg(d->rs1()) < (int32_t)r->get_ireg(d->rs2()));
     }
     void bge(Decoder *d)
     {
