@@ -54,6 +54,7 @@ enum struct FPU_Inst : uint8_t{
     FMV_X_W  = 0b1110000,
     FCVT_S_W = 0b1101000,
     FMV_W_X  = 0b1111000,
+    FSGNJ = 0b0010000,
 };
 
 enum struct FLoad_Inst : uint8_t{
@@ -106,4 +107,10 @@ enum struct Store_Inst : uint8_t {
     SB = 0b000,
     SH = 0b001,
     SW = 0b010
+};
+
+enum struct FSGNJ_Inst : uint8_t {
+    FSGNJ = 0b000,
+    FSGNJN = 0b001,
+    FSGNJX = 0b010
 };
