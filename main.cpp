@@ -1179,19 +1179,19 @@ class Core
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
-        r->set_ireg(d->rd(),FPU::feq(x,y));
+        r->set_freg(d->rd(),FPU::feq(x,y));
     }
     void flt(Decoder *d)
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
-        r->set_ireg(d->rd(),FPU::flt(x,y));
+        r->set_freg(d->rd(),FPU::flt(x,y));
     }
     void fle(Decoder *d)
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
-        r->set_ireg(d->rd(),FPU::fle(x,y));
+        r->set_freg(d->rd(),FPU::fle(x,y));
     }
 
     void fcomp(Decoder *d)
