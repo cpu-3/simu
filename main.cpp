@@ -469,7 +469,7 @@ class Register
         std::cout << std::endl;
         for (int i = 0; i < freg_size; i++)
         {
-            std::cout << std::dec << "f" << i << std::hex << ": " << f_registers[i] << " ";
+            std::cout << std::dec << "f" << i << std::hex << ": " << i2f(f_registers[i]) << " ";
             if (i % 6 == 5)
             {
                 std::cout << std::endl;
@@ -1105,8 +1105,8 @@ class Core
         if(d->rm() != 0){
           error_dump("丸め型がおかしいです\n");
         }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fadd(x, y));
     }
 
@@ -1115,8 +1115,8 @@ class Core
         if(d->rm() != 0){
           error_dump("丸め型がおかしいです\n");
         }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fsub(x, y));
     }
 
@@ -1125,8 +1125,8 @@ class Core
         if(d->rm() != 0){
           error_dump("丸め型がおかしいです\n");
         }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fmul(x, y));
     }
 
@@ -1135,8 +1135,8 @@ class Core
         if(d->rm() != 0){
           error_dump("丸め型がおかしいです\n");
         }
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fdiv(x, y));
     }
 
@@ -1148,7 +1148,7 @@ class Core
         if(d->rs2() != 0){
           error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
         }
-        uint32_t x = r->get_ireg(d->rs1());
+        float x = r->get_freg(d->rs1());
         r->set_freg(d->rd(), FPU::fsqrt(x));
     }
 
