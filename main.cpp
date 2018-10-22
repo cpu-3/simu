@@ -93,6 +93,15 @@ class Memory
         }
     }
 
+    void read_mem_check(uint32_t addr, uint8_t size)
+    {
+        addr_alignment_check(addr);
+        if (addr + size >= memory_lim)
+        {
+            error_dump("多分不正なデータアドレスを読もうとしました: %x\n", addr);
+        }
+    }
+
     void inst_mem_check(uint32_t addr)
     {
         addr_alignment_check(addr);
@@ -194,7 +203,7 @@ class Memory
         {
             return v;
         }
-        data_mem_check(addr, 1);
+        read_mem_check(addr, 1);
         return memory[addr];
     }
 
@@ -205,7 +214,7 @@ class Memory
         {
             return v;
         }
-        data_mem_check(addr, 2);
+        read_mem_check(addr, 2);
         uint16_t *m = (uint16_t *)memory;
         return m[addr / 2];
     }
@@ -217,7 +226,7 @@ class Memory
         {
             return v;
         }
-        data_mem_check(addr, 4);
+        read_mem_check(addr, 4);
         uint32_t *m = (uint32_t *)memory;
         return m[addr / 4];
     }
