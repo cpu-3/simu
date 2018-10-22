@@ -311,6 +311,23 @@ class ALU
     }
 };
 
+typedef union {
+    uint32_t i;
+    float f;
+} float_int;
+
+int f2i(float x) {
+    float_int data;
+    data.f = x;
+    return data.i;
+}
+
+float i2f(int x) {
+    float_int data;
+    data.i = x;
+    return data.f;
+}
+
 class FPU
 {
   public:
@@ -352,12 +369,13 @@ class FPU
     }
     static uint32_t float2int(float x)
     {
-        int y = (int)x;
+        printf("data: %f\n", x);
+        int y = int(x);
         return y;
     }
     static float int2float(int x)
     {
-        float y = (float)x;
+        float y = float(x);
         return y;
     }
           
@@ -368,7 +386,7 @@ class Register
     static const int ireg_size = 32;
     static const int freg_size = 32;
     uint32_t i_registers[ireg_size] = {0};
-    float f_registers[freg_size] = {0.0f};
+    uint32_t f_registers[freg_size] = {0};
 
     static void check_ireg_name(int name, int write)
     {
@@ -408,6 +426,12 @@ class Register
     {
         check_freg_name(name);
 
+        f_registers[name] = f2i(val);
+    }
+    void set_freg_raw(int name, uint32_t val)
+    {
+        check_freg_name(name);
+
         f_registers[name] = val;
     }
     uint32_t get_ireg(int name)
@@ -419,7 +443,12 @@ class Register
         }
         return i_registers[name];
     }
-    uint32_t get_freg(int name)
+    float get_freg(int name)
+    {
+        check_freg_name(name);
+        return i2f(f_registers[name]);
+    }
+    uint32_t get_freg_raw(int name)
     {
         check_freg_name(name);
         return f_registers[name];
@@ -432,6 +461,15 @@ class Register
         for (int i = 0; i < ireg_size; i++)
         {
             std::cout << std::dec << "x" << i << std::hex << ": " << i_registers[i] << " ";
+            if (i % 6 == 5)
+            {
+                std::cout << std::endl;
+            }
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < freg_size; i++)
+        {
+            std::cout << std::dec << "f" << i << std::hex << ": " << f_registers[i] << " ";
             if (i % 6 == 5)
             {
                 std::cout << std::endl;
@@ -1020,7 +1058,7 @@ class Core
         offset >>= 20;
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_4(addr);
-        r->set_freg(d->rd(), val);
+        r->set_freg_raw(d->rd(), val);
     }
 
     void fload(Decoder *d)
@@ -1040,7 +1078,7 @@ class Core
     void fsw(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
-        uint32_t src = r->get_freg(d->rs2());
+        uint32_t src = r->get_freg_raw(d->rs2());
         int32_t offset = d->s_type_imm();
         offset <<= 20;
         offset >>= 20;
