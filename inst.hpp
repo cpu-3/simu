@@ -49,6 +49,11 @@ enum struct FPU_Inst : uint8_t{
     FMUL  = 0b0001000,
     FDIV  = 0b0001100,
     FSQRT = 0b0101100,
+    FCVT_W_S = 0b1100000,
+    FCOMP    = 0b1010000,
+    FMV_X_W  = 0b1110000,
+    FCVT_S_W = 0b1101000,
+    FMV_W_X  = 0b1111000,
 };
 
 enum struct FLoad_Inst : uint8_t{
@@ -57,6 +62,12 @@ enum struct FLoad_Inst : uint8_t{
 
 enum struct FStore_Inst : uint8_t{
     FSW = 0b010,
+};
+
+enum struct FComp_Inst : uint8_t{
+    FEQ = 0b010,
+    FLT = 0b001,
+    FLE = 0b000,
 };
 
 enum struct ALU_ADD_SUB_Inst : uint8_t {

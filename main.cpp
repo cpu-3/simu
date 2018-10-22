@@ -325,6 +325,33 @@ class FPU
     {
         return std::sqrt(x);
     }
+
+    static uint32_t feq(float x, float y)
+    {
+        if (x == y) return 1;
+        else return 0;
+    }
+    static uint32_t flt(float x, float y)
+    {
+        if (x < y) return 1;
+        else return 0;
+    }
+    static uint32_t fle(float x, float y)
+    {
+        if (x <= y) return 1;
+        else return 0;
+    }
+    static uint32_t float2int(float x)
+    {
+        int y = (int)x;
+        return y;
+    }
+    static float int2float(int x)
+    {
+        float y = (float)x;
+        return y;
+    }
+          
 };
 
 class Register
@@ -1078,6 +1105,67 @@ class Core
         r->set_freg(d->rd(), FPU::fsqrt(x));
     }
 
+    void fcvt_w_s(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        if(d->rs2() != 0){
+          error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
+        }
+        float x = r->get_freg(d->rs1());
+        r->set_ireg(d->rd(), FPU::float2int(x));
+    }
+
+    void fcvt_s_w(Decoder *d)
+    {
+        if(d->rm() != 0){
+          error_dump("丸め型がおかしいです\n");
+        }
+        if(d->rs2() != 0){
+          error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
+        }
+        uint32_t x = r->get_ireg(d->rs1());
+        r->set_freg(d->rd(), FPU::int2float(x));
+    }
+
+    void feq(Decoder *d)
+    {
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
+        r->set_ireg(d->rd(),FPU::feq(x,y));
+    }
+    void flt(Decoder *d)
+    {
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
+        r->set_ireg(d->rd(),FPU::flt(x,y));
+    }
+    void fle(Decoder *d)
+    {
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
+        r->set_ireg(d->rd(),FPU::fle(x,y));
+    }
+
+    void fcomp(Decoder *d)
+    {
+        switch (static_cast<FComp_Inst>(d->funct3()))
+        {
+        case FComp_Inst::FEQ:
+            feq(d);
+            break;
+        case FComp_Inst::FLT:
+            flt(d);
+            break;
+        case FComp_Inst::FLE:
+            fle(d);
+            break;
+        default:
+            error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
+        }
+    }
+
     void fpu(Decoder *d)
     {
         switch (static_cast<FPU_Inst>(d->funct5_fmt()))
@@ -1096,6 +1184,15 @@ class Core
             break;
         case FPU_Inst::FSQRT:
             fsqrt(d);
+            break;
+        case FPU_Inst::FCOMP:
+            fcomp(d);
+            break;
+        case FPU_Inst::FCVT_W_S:
+            fcvt_w_s(d);
+            break;
+        case FPU_Inst::FCVT_S_W:
+            fcvt_s_w(d);
             break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
