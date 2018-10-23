@@ -692,10 +692,8 @@ class Core
     void auipc(Decoder *d)
     {
         // sign extended
-        int64_t val = d->u_type_imm() << 12;
-        val <<= 32;
-        val >>= 32;
-        val += (int64_t)(r->ip);
+        int32_t val = d->u_type_imm();
+        val += (int32_t)(r->ip);
         r->set_ireg(d->rd(), val);
     }
     void jal(Decoder *d)
