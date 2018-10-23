@@ -1217,6 +1217,13 @@ class Core
         r->set_freg(d->rd(), x * y > 0 ? x : -x);
     }
 
+    void fsgnjn(Decoder *d) 
+    {
+        float x = r->get_freg(d->rs1());
+        float y = r->get_freg(d->rs2());
+        r->set_freg(d->rd(), x * y > 0 ? -x : x);
+    }
+
     void fsgnj(Decoder *d) 
     {
         switch (static_cast<FSGNJ_Inst>(d->funct3())) 
@@ -1225,6 +1232,8 @@ class Core
             _fsgnj(d);
             break;
         case FSGNJ_Inst::FSGNJN:
+            fsgnjn(d);
+            break;
         case FSGNJ_Inst::FSGNJX:
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
