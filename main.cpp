@@ -45,9 +45,7 @@ class IO
 
     uint8_t receive_uart()
     {
-        uint8_t val;
-        std::cin >> val;
-        return val;
+        return getchar();
     }
 };
 
