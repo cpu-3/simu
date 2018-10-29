@@ -15,7 +15,7 @@ class IO
 
     void transmit_uart(uint8_t val)
     {
-        std::cout << std::hex << val << std::dec << std::endl;
+        std::cout << val;
     }
 
     uint8_t receive_uart()
