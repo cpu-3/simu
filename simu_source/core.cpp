@@ -862,7 +862,6 @@ class Core
             r->ip += 4;
             break;
         default:
-            info();
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
             r->ip += 4;
             break;

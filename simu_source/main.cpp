@@ -20,6 +20,13 @@ int main(int argc, const char **argv)
     }
     Settings s = Settings(argc == 2 ? "" : argv[2]);
     Core core((std::string(argv[1])), &s);
-    core.main_loop();
+    try {
+        core.main_loop();
+    } 
+    catch (int e) 
+    {
+        core.info();
+        return -1;
+    }
     return 0;
 }

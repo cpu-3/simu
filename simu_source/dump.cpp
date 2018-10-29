@@ -5,9 +5,8 @@ void error_dump(const char *fmt, ...)
     vfprintf(stderr, fmt, ap);
     va_end(ap);
 
-    // ここに Dump情報詳細を追加する
-
-    exit(-1);
+    // vsprintf危険だし仕方ないね
+    throw -1;
 }
 
 void warn_dump(const char *fmt, ...)
