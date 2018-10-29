@@ -915,7 +915,7 @@ class Core
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
             if (settings->show_inst_value) {
-                printf("instr: %x\n", d.code);
+                printf("instr:%x %x\n", r->ip, d.code);
             }
             if (settings->show_registers) {
                 r->info();
