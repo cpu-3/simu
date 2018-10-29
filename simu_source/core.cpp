@@ -87,7 +87,6 @@ class FPU
     }
     static uint32_t float2int(float x)
     {
-        printf("data: %f\n", x);
         int y = int(x);
         return y;
     }
