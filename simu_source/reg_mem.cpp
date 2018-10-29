@@ -54,7 +54,7 @@ class Memory
         addr_alignment_check(addr);
         if (addr + 4 > inst_mem_lim)
         {
-            error_dump("多分不正な命令アドレスに書き込もうとしました: %x\n", addr);
+            error_dump("多分不正な命令アドレスにアクセスしようとしました: %x\n", addr);
         }
     }
 
@@ -62,7 +62,7 @@ class Memory
     {
         if ((addr + size) >= memory_lim)
         {
-            error_dump("多分不正なアドレスに書き込もうとしました: %x\n", addr);
+            error_dump("多分不正なアドレスにアクセスしようとしました: %x\n", addr);
         }
     }
 

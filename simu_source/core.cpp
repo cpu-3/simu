@@ -895,9 +895,15 @@ class Core
         delete m;
         delete io;
     }
-    void info() {
-        r->info();
+    void show_stack_from_top()
+    {
+        std::cout << "Stack" << std::endl;
         m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+    }
+    void info()
+    {
+        r->info();
+        show_stack_from_top();
         io->show_status();
         stat->show_stats();
     }
@@ -915,7 +921,7 @@ class Core
                 r->info();
             }
             if (settings->show_stack) {
-                m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
+                show_stack_from_top();
             }
             if (settings->show_io) {
                 io->show_status();
