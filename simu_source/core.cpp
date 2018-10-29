@@ -104,10 +104,10 @@ class Core
     const uint32_t instruction_load_address = 0;
     const int default_stack_pointer = 2;
     const int default_stack_dump_size = 48;
-    const int *stat;
     Memory *m;
     Register *r;
     IO *io;
+    Stat *stat;
 
     Settings *settings;
 
@@ -115,6 +115,7 @@ class Core
     {
         uint32_t val = d->u_type_imm();
         r->set_ireg(d->rd(), val);
+        (stat->stat_lui)++;
     }
     void auipc(Decoder *d)
     {
@@ -122,6 +123,7 @@ class Core
         int32_t val = d->u_type_imm();
         val += (int32_t)(r->ip);
         r->set_ireg(d->rd(), val);
+        (stat->stat_auipc)++;
     }
 
     void jal(Decoder *d)
@@ -129,6 +131,7 @@ class Core
         int32_t imm = d->jal_imm();
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = (int32_t)r->ip + imm;
+        (stat->stat_jal)++;
     }
     void jalr(Decoder *d)
     {
@@ -137,6 +140,7 @@ class Core
         int32_t s = r->get_ireg(d->rs1());
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = s + imm;
+        (stat->stat_jalr)++;
     }
 
     void branch_inner(Decoder *d, int flag)
@@ -153,26 +157,32 @@ class Core
     void beq(Decoder *d)
     {
         branch_inner(d, r->get_ireg(d->rs1()) == r->get_ireg(d->rs2()));
+        (stat->stat_beq)++;
     }
     void bne(Decoder *d)
     {
         branch_inner(d, r->get_ireg(d->rs1()) != r->get_ireg(d->rs2()));
+        (stat->stat_bne)++;
     }
     void blt(Decoder *d)
     {
         branch_inner(d, (int32_t)r->get_ireg(d->rs1()) < (int32_t)r->get_ireg(d->rs2()));
+        (stat->stat_blt)++;
     }
     void bge(Decoder *d)
     {
         branch_inner(d, (int64_t)r->get_ireg(d->rs1()) >= (int64_t)r->get_ireg(d->rs2()));
+        (stat->stat_bge)++;
     }
     void bltu(Decoder *d)
     {
         branch_inner(d, r->get_ireg(d->rs1()) < r->get_ireg(d->rs2()));
+        (stat->stat_bltu)++;
     }
     void bgeu(Decoder *d)
     {
         branch_inner(d, r->get_ireg(d->rs1()) >= r->get_ireg(d->rs2()));
+        (stat->stat_bgeu)++;
     }
 
     void lb(Decoder *d)
@@ -184,6 +194,7 @@ class Core
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_1(addr);
         r->set_ireg(d->rd(), val);
+        (stat->stat_lb)++;
     }
     void lh(Decoder *d)
     {
@@ -194,6 +205,7 @@ class Core
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_2(addr);
         r->set_ireg(d->rd(), val);
+        (stat->stat_lh)++;
     }
     void lw(Decoder *d)
     {
@@ -204,6 +216,7 @@ class Core
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_4(addr);
         r->set_ireg(d->rd(), val);
+        (stat->stat_lw)++;
     }
     void lbu(Decoder *d)
     {
@@ -212,6 +225,7 @@ class Core
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_1(addr);
         r->set_ireg(d->rd(), val);
+        (stat->stat_lbu)++;
     }
     void lhu(Decoder *d)
     {
@@ -220,6 +234,7 @@ class Core
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_2(addr);
         r->set_ireg(d->rd(), val);
+        (stat->stat_lhu)++;
     }
 
     void sb(Decoder *d)
@@ -233,6 +248,7 @@ class Core
         offset >>= 20;
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
+        (stat->stat_sb)++;
     }
 
     void sh(Decoder *d)
@@ -246,6 +262,7 @@ class Core
         offset >>= 20;
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
+        (stat->stat_sh)++;
     }
 
     void sw(Decoder *d)
@@ -257,6 +274,7 @@ class Core
         offset >>= 20;
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
+        (stat->stat_sw)++;
     }
 
     void addi(Decoder *d)
@@ -264,48 +282,56 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::add(x, y));
+        (stat->stat_addi)++;
     }
     void slti(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::slt(x, y));
+        (stat->stat_slti)++;
     }
     void sltiu(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sltu(x, y));
+        (stat->stat_sltiu)++;
     }
     void xori(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::xor_(x, y));
+        (stat->stat_xori)++;
     }
     void ori(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::or_(x, y));
+        (stat->stat_ori)++;
     }
     void andi(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::and_(x, y));
+        (stat->stat_andi)++;
     }
     void slli(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sll(x, y));
+        (stat->stat_slli)++;
     }
     void srli(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::srl(x, y));
+        (stat->stat_srli)++;
     }
     // void srai 
     
@@ -314,60 +340,70 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::add(x, y));
+        (stat->stat_add)++;
     }
     void sub(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sub(x, y));
+        (stat->stat_sub)++;
     }
     void sll(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sll(x, y));
+        (stat->stat_sll)++;
     }
     void slt(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::slt(x, y));
+        (stat->stat_slt)++;
     }
     void sltu(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sltu(x, y));
+        (stat->stat_sltu)++;
     }
     void xor_(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::xor_(x, y));
+        (stat->stat_xor)++;
     }
     void srl(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
+        (stat->stat_srl)++;
     }
     void sra(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sra(x, y));
+        (stat->stat_sra)++;
     }
     void or_(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::or_(x, y));
+        (stat->stat_or)++;
     }
     void and_(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::and_(x, y));
+        (stat->stat_and)++;
     }
 
     void branch(Decoder *d)
@@ -539,8 +575,6 @@ class Core
         }
     }
 
-
-
     void flw(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
@@ -550,6 +584,7 @@ class Core
         uint32_t addr = base + offset;
         uint32_t val = m->read_mem_4(addr);
         r->set_freg_raw(d->rd(), val);
+        (stat->stat_flw)++;
     }
 
     void fsw(Decoder *d)
@@ -561,6 +596,7 @@ class Core
         offset >>= 20;
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
+        (stat->stat_fsw)++;
     }
 
     void fadd(Decoder *d)
@@ -571,6 +607,7 @@ class Core
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fadd(x, y));
+        (stat->stat_fadd)++;
     }
     void fsub(Decoder *d)
     {
@@ -580,6 +617,7 @@ class Core
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fsub(x, y));
+        (stat->stat_fsub)++;
     }
     void fmul(Decoder *d)
     {
@@ -589,6 +627,7 @@ class Core
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fmul(x, y));
+        (stat->stat_fmul)++;
     }
     void fdiv(Decoder *d)
     {
@@ -598,6 +637,7 @@ class Core
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), FPU::fdiv(x, y));
+        (stat->stat_fdiv)++;
     }
     void fsqrt(Decoder *d)
     {
@@ -609,6 +649,7 @@ class Core
         }
         float x = r->get_freg(d->rs1());
         r->set_freg(d->rd(), FPU::fsqrt(x));
+        (stat->stat_fsqrt)++;
     }
 
     void _fsgnj(Decoder *d) 
@@ -616,12 +657,14 @@ class Core
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), x * y > 0 ? x : -x);
+        (stat->stat_fsgnj)++;
     }
     void fsgnjn(Decoder *d) 
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), x * y > 0 ? -x : x);
+        (stat->stat_fsgnjn)++;
     }
 
     void fcvt_w_s(Decoder *d)
@@ -634,6 +677,7 @@ class Core
         }
         float x = r->get_freg(d->rs1());
         r->set_ireg(d->rd(), FPU::float2int(x));
+        (stat->stat_fcvt_w_s)++;
     }
     void fcvt_s_w(Decoder *d)
     {
@@ -645,6 +689,7 @@ class Core
         }
         uint32_t x = r->get_ireg(d->rs1());
         r->set_freg(d->rd(), FPU::int2float(x));
+        (stat->stat_fcvt_s_w)++;
     }
 
     void feq(Decoder *d)
@@ -652,18 +697,21 @@ class Core
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_ireg(d->rd(),FPU::feq(x,y));
+        (stat->stat_feq)++;
     }
     void flt(Decoder *d)
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_ireg(d->rd(),FPU::flt(x,y));
+        (stat->stat_flt)++;
     }
     void fle(Decoder *d)
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
         r->set_ireg(d->rd(),FPU::fle(x,y));
+        (stat->stat_fle)++;
     }
 
     void fload(Decoder *d)
@@ -827,6 +875,7 @@ class Core
         r = new Register;
         io = new IO;
         m = new Memory(io);
+        stat = new Stat;
 
         this->settings = settings;
 
@@ -851,6 +900,7 @@ class Core
         r->info();
         m->show_data(r->get_ireg(default_stack_pointer), default_stack_dump_size);
         io->show_status();
+        stat->show_stats();
     }
     void main_loop()
     {

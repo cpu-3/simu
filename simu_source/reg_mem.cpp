@@ -207,6 +207,7 @@ class Memory
             uint32_t v = read_mem_4(ad);
             printf("%08x: %08x\n", ad, v);
         }
+        std::cout << std::endl;
     }
 };
 
@@ -302,6 +303,7 @@ class Register
 
     void info()
     {
+        std::cout << "iRegister: " << std::endl;
         std::cout << std::hex;
         std::cout << "ip: " << ip << std::endl;
         for (int i = 0; i < ireg_size; i++)
@@ -312,7 +314,8 @@ class Register
                 std::cout << std::endl;
             }
         }
-        std::cout << std::endl;
+        std::cout << std::endl << std::endl;
+        std::cout << "fRegister: " << std::endl;
         for (int i = 0; i < freg_size; i++)
         {
             std::cout << std::dec << "f" << i << std::hex << ": " << i2f(f_registers[i]) << " ";

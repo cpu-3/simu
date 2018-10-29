@@ -6,6 +6,7 @@ class IO
     void show_status()
     {
         printf("LED: %02x\n", led);
+        std::cout << std::endl;
     }
     void write_led(uint8_t val)
     {
