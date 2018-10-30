@@ -901,10 +901,13 @@ class Core
     }
     void info()
     {
-        r->info();
-        show_stack_from_top();
-        io->show_status();
-        stat->show_stats();
+        if (!settings->hide_error_dump)
+        {
+            r->info();
+            show_stack_from_top();
+            io->show_status();
+            stat->show_stats();
+        }
     }
     void main_loop()
     {
