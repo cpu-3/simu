@@ -1,3 +1,4 @@
+//TODO sort
 class Stat
 {
   public:

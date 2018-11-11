@@ -9,6 +9,7 @@
 #include "decoder.cpp"
 #include "io.cpp"
 #include "reg_mem.cpp"
+#include "fpu.cpp"
 #include "core.cpp"
 
 int main(int argc, const char **argv)

@@ -46,58 +46,6 @@ class ALU
     }
 };
 
-class FPU
-{
-  public:
-    static float fadd(float x, float y)
-    {
-        return x + y;
-    }
-    static float fsub(float x, float y)
-    {
-        return x - y;
-    }
-    static float fmul(float x, float y)
-    {
-        return x * y;
-    }
-    static float fdiv(float x, float y)
-    {
-        return x / y;
-    }
-    static float fsqrt(float x)
-    {
-        return std::sqrt(x);
-    }
-
-    static uint32_t feq(float x, float y)
-    {
-        if (x == y) return 1;
-        else return 0;
-    }
-    static uint32_t flt(float x, float y)
-    {
-        if (x < y) return 1;
-        else return 0;
-    }
-    static uint32_t fle(float x, float y)
-    {
-        if (x <= y) return 1;
-        else return 0;
-    }
-    static uint32_t float2int(float x)
-    {
-        int y = int(x);
-        return y;
-    }
-    static float int2float(int x)
-    {
-        float y = float(x);
-        return y;
-    }
-};
-
-
 class Core
 {
     const uint32_t instruction_load_address = 0;
