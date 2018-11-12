@@ -62,7 +62,7 @@ static uint32_t fadd(uint32_t x1, uint32_t x2)
     }
 
     uint32_t te = e1a + bit_reverse(e2a, 8); //9bit
-    uint32_t ce = ~(bit_range(te,9,9)); //1bit
+    uint32_t ce = bit_range(~(bit_range(te,9,9)),1,1); //1bit
     uint32_t tei = 1 + te; //9bit
     uint32_t tde; //8bit
     uint32_t de; //5bit
@@ -212,9 +212,9 @@ int main(){
     float_int result;
     srand((unsigned) time(NULL));
     
-    for(int j = 0; j < 10; j++){
+    for(int j = 0; j < 1000; j++){
         data1.f = rand();
-        data2.f = -rand();
+        data2.f = rand();
         result.i = fadd(data1.i, data2.i);
        /* 
         printf("data1:%f data2:%f\n", data1.f, data2.f);
