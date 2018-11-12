@@ -571,9 +571,9 @@ class Core
         if(d->rm() != 0){
           error_dump("丸め型がおかしいです\n");
         }
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
-        r->set_freg(d->rd(), FPU::fmul(x, y));
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fmul(x, y));
         (stat->stat_fmul)++;
     }
     void fdiv(Decoder *d)

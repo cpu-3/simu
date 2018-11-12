@@ -210,20 +210,26 @@ int main(){
     float_int data2;
 
     float_int result;
+    float_int seikai;
     srand((unsigned) time(NULL));
     
-    for(int j = 0; j < 10000; j++){
+    for(int j = 0; j < 1000; j++){
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         data2.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         result.i = fadd(data1.i, data2.i);
+        seikai.f = data1.f + data2.f;
 /*
         printf("data1:%f data2:%f\n", data1.f, data2.f);
-        printf("理論値:\t%f\n", data1.f+data2.f);
         printf("fadd結果:\t%f\n", result.f);
+        printf("理論値:\t%f\n", seikai.f);
 */
-        if(result.f-(data1.f + data2.f) != 0){
+        if(result.f-seikai.f != 0){
             printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
-            printf("result:%f\nseikai:%f\n", result.f, data1.f + data2.f);
+            printf("result:%f\nseikai:%f\n", result.f, seikai.f);
+            printb(result.i);
+            printf("\n");
+            printb(seikai.i);
+            printf("\n");
         }
     }
 
