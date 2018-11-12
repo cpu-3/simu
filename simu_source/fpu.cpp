@@ -191,11 +191,13 @@ class FPU
         
         return y;
     }
-      
-    static float fsub(float x, float y)
-    {
-        return x - y;
+
+    static uint32_t fsub(uint32_t x1, uint32_t x2){
+        uint32_t s2 = bit_range(~x2, 32, 32); //1bit
+        uint32_t x2s = (s2 << 31) + bit_range(x2,31,1);
+        return (fadd(x1, x2s));
     }
+
     static float fmul(float x, float y)
     {
         return x * y;

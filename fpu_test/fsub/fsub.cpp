@@ -205,6 +205,12 @@ static uint32_t fadd(uint32_t x1, uint32_t x2)
     return y;
 }
 
+uint32_t fsub(uint32_t x1, uint32_t x2){
+    uint32_t s2 = bit_range(~x2, 32, 32); //1bit
+    uint32_t x2s = (s2 << 31) + bit_range(x2,31,1);
+    return (fadd(x1, x2s));
+}
+  
 int main(){
     float_int data1;
     float_int data2;
@@ -215,15 +221,15 @@ int main(){
     for(int j = 0; j < 10000; j++){
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         data2.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
-        result.i = fadd(data1.i, data2.i);
+        result.i = fsub(data1.i, data2.i);
 /*
         printf("data1:%f data2:%f\n", data1.f, data2.f);
         printf("理論値:\t%f\n", data1.f+data2.f);
         printf("fadd結果:\t%f\n", result.f);
 */
-        if(result.f-(data1.f + data2.f) != 0){
+        if(result.f-(data1.f - data2.f) != 0){
             printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
-            printf("result:%f\nseikai:%f\n", result.f, data1.f + data2.f);
+            printf("result:%f\nseikai:%f\n", result.f, data1.f - data2.f);
         }
     }
 
