@@ -18,6 +18,17 @@ val = ~val;
 return bit_range(val, bitsize, 1);
 }
 
+void char_uint_cpy(uint32_t *c, char *x, int bit_size)
+{
+    int i = 0;
+    while(x[i] != '\0'){
+        if (x[i] == '1'){
+            *c |= 1 << (bit_size - 1 - i);
+        }
+        i++;
+    }
+}
+
 class FPU
 {
   public:
@@ -257,14 +268,105 @@ class FPU
 
         return y;
     }
+    static uint32_t finv(uint32_t x){
+        using namespace std;
+        uint32_t s = bit_range(x, 32, 32); //1bit
+        uint32_t e = bit_range(x, 31, 24); //8bit
+        uint32_t index = bit_range(x, 23, 14); //10bit
+        uint32_t a = bit_range(x, 13, 1); //13bit
 
-    static float fdiv(float x, float y)
-    {
-        return x / y;
+        char outfile[] = "simu_source/inv_v4.bin";
+        
+        ifstream ifs(outfile);
+         if (!ifs){
+             cout << "ファイルが開けません(inv)" << endl;
+            exit(-1);
+        }
+
+        char *c_char;
+        char *g_char;
+        c_char = (char *)malloc(23*sizeof(char));
+        g_char = (char *)malloc(13*sizeof(char));
+        ifs.seekg ( 38*index*sizeof (char) );
+        ifs.read ( c_char, 23*sizeof(char) );
+        ifs.seekg ( 38*index*sizeof(char) + 24*sizeof(char) );
+        ifs.read ( g_char, 13*sizeof(char) );
+        
+        uint32_t c = 0; //23bit
+        uint32_t g = 0; //13bit
+        char_uint_cpy(&c,c_char,23);
+        char_uint_cpy(&g,g_char,13); 
+            
+        ifs.close();
+        free(c_char);
+        free(g_char);
+
+        uint32_t ey; //8bit
+        if(index != 0 || a != 0){
+            ey = bit_reverse(e+2,8);
+        }else{
+            ey = bit_reverse(e+1,8);
+        }
+
+        uint64_t calc = (1UL << 35) + ((uint64_t)c << 12) - (uint64_t)(g*a); //36bit
+        
+        uint32_t y = (s << 31) + (ey << 23) + bit_range64(calc,35,13);
+
+        return y;
     }
-    static float fsqrt(float x)
+
+    static uint32_t fdiv(uint32_t x1, uint32_t x2){
+        return fmul(x1, finv(x2));
+    }
+
+    static uint32_t fsqrt(uint32_t x)
     {
-        return std::sqrt(x);
+        using namespace std;
+        uint32_t s = bit_range(x, 32, 32); //1bit
+        uint32_t e = bit_range(x, 31, 25); //7bit
+        uint32_t index = bit_range(x, 24, 15); //10bit
+        uint32_t a = bit_range(x, 14, 1); //14bit
+        uint32_t d = bit_reverse(bit_range(index,10,10),1); //1bit
+
+        char outfile[] = "simu_source/sqrt_v4.bin";
+        
+        ifstream ifs(outfile);
+         if (!ifs){
+             cout << "ファイルが開けません(sqrt)" << endl;
+            exit(-1);
+        }
+
+        char *c_char;
+        char *g_char;
+        c_char = (char *)malloc(23*sizeof(char));
+        g_char = (char *)malloc(13*sizeof(char));
+        ifs.seekg ( 38*index*sizeof (char) );
+        ifs.read ( c_char, 23*sizeof(char) );
+        ifs.seekg ( 38*index*sizeof(char) + 24*sizeof(char) );
+        ifs.read ( g_char, 13*sizeof(char) );
+        
+        uint32_t c = 0; //23bit
+        uint32_t g = 0; //13bit
+        char_uint_cpy(&c,c_char,23);
+        char_uint_cpy(&g,g_char,13); 
+
+        ifs.close();
+        free(c_char);
+        free(g_char);
+
+        uint32_t e1 = e - d; //7bit
+        uint32_t ey = (bit_range(e1,7,7) << 7) + (bit_reverse(bit_range(e1,7,7),1) << 6) + bit_range(e1,6,1); //8bit
+
+        uint64_t calc; //38bit
+        if(d){
+            calc = ((uint64_t)c << 15) + (uint64_t)((1 << 13) + g)*a*2;
+        }else{
+            calc = ((uint64_t)c << 15) + (uint64_t)((1 << 13) + g)*a;
+        }
+
+        uint32_t y = (s << 31) + (ey << 23) + bit_range64(calc,38,16) + bit_range64(calc,15,15);
+
+        return y;
     }
 
     static uint32_t feq(float x, float y)

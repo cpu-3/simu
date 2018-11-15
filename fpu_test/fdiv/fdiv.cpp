@@ -95,6 +95,69 @@ static uint32_t finv(uint32_t x)
     return y;
 }
 
+static uint32_t fmul(uint32_t x1, uint32_t x2)
+{
+    uint32_t s1 = bit_range(x1, 32, 32); //1bit
+    uint32_t s2 = bit_range(x2, 32, 32); //1bit
+    uint32_t e1 = bit_range(x1, 31, 24); //8bit
+    uint32_t e2 = bit_range(x2, 31, 24); //8bit
+    uint32_t m1 = bit_range(x1, 23, 1); //23bit
+    uint32_t m2 = bit_range(x2, 23, 1); //23bit
+
+    uint32_t sy = bit_range(s1^s2,1,1); //1bit
+    
+    uint32_t m1a = (1 << 23) + m1; //24bit
+    uint32_t m2a = (1 << 23) + m2; //24bit
+
+    uint64_t mmul; //48bit
+    uint64_t mketa; //47bit
+    uint32_t my; //23bit
+    mmul = (uint64_t)m1a*(uint64_t)m2a;
+
+    if(bit_range64(mmul,48,48)){
+        mketa = bit_range64(mmul,47,1);
+    }else{
+        mketa = bit_range64(mmul,46,1) << 1;
+    }
+ 
+    if((bit_range(mketa,23,1) == 0) && bit_range(mketa,24,24)){
+        my = bit_range64(mketa,47,25)+bit_range(mketa,25,25);
+    }else{
+        my = bit_range64(mketa,47,25)+bit_range(mketa,24,24);
+    }
+
+    uint32_t eadd; //9bit 
+    uint32_t eexp; //9bit 
+    uint32_t ey; //8bit 
+    if(bit_range64(mketa,47,24) == 0xFFFFFF){
+        eadd = bit_range(e1+e2+bit_range64(mmul,48,48)+1,9,1);
+    }else{
+        eadd = bit_range(e1+e2+bit_range64(mmul,48,48),9,1);
+    }
+    if(bit_range(eadd,9,9) & bit_range(eadd,8,8)){
+        eexp = 0b111111111;
+    }else if(bit_range(eadd,9,9) | bit_range(eadd,8,8)){
+        eexp = eadd - 0b001111111;
+    }else{
+        eexp = 0;
+    }
+    ey = bit_range(eexp,8,1);
+
+    uint32_t ovf = bit_range(eadd,8,8) & bit_range(eadd,7,7);
+
+    uint32_t y;
+    if(e1 != 0 || e2 != 0 || ey != 0){
+        y = (sy << 31) + (ey << 23) + bit_range(my,23,1);
+    }else{
+        y = sy << 31;
+    }
+    return y;
+}
+
+static uint32_t fdiv(uint32_t x1, uint32_t x2){
+    return fmul(x1, finv(x2));
+}
+
 int main(){
     float_int data1;
     float_int data2;
@@ -103,16 +166,15 @@ int main(){
     float_int seikai;
     srand((unsigned) time(NULL));
     
+/*
     float_int data;
     for(int j = 0; j < 10; j++){
         data.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         result.i = finv(data.i);
         seikai.f = 1/data.f;
-        /*
         printf("data1:%f data2:%f\n", data1.f, data2.f);
         printf("fdiv結果:\t%f\n", result.f);
         printf("理論値:\t%f\n", seikai.f);
-        */
         //誤差が生じた場合に出力
         if(result.f-seikai.f != 0){
             printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
@@ -123,8 +185,7 @@ int main(){
             printf("\n");
         }
     }
-
-/*
+*/
     for(int j = 0; j < 1000; j++){
 
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
@@ -144,7 +205,6 @@ int main(){
             printf("\n");
         }
     }
-*/
 
     return 0;
 }
