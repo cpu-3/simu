@@ -28,6 +28,45 @@ void char_uint_cpy(uint32_t *c, char *x, int bit_size)
         i++;
     }
 }
+uint32_t map(uint32_t mh)
+{
+    switch(mh){
+        case 0b00000: return 0b01111110;
+        case 0b00001: return 0b01111010;
+        case 0b00010: return 0b01110111;
+        case 0b00011: return 0b01110011;
+        case 0b00100: return 0b01110000;
+        case 0b00101: return 0b01101101;
+        case 0b00110: return 0b01101010;
+        case 0b00111: return 0b01101000;
+        case 0b01000: return 0b01100101;
+        case 0b01001: return 0b01100011;
+        case 0b01010: return 0b01100000;
+        case 0b01011: return 0b01011110;
+        case 0b01100: return 0b01011100;
+        case 0b01101: return 0b01011010;
+        case 0b01110: return 0b01011000;
+        case 0b01111: return 0b01010110;
+        case 0b10000: return 0b01010100;
+        case 0b10001: return 0b01010011;
+        case 0b10010: return 0b01010001;
+        case 0b10011: return 0b01010000;
+        case 0b10100: return 0b01001110;
+        case 0b10101: return 0b01001101;
+        case 0b10110: return 0b01001011;
+        case 0b10111: return 0b01001010;
+        case 0b11000: return 0b01001000;
+        case 0b11001: return 0b01000111;
+        case 0b11010: return 0b01000110;
+        case 0b11011: return 0b01000101;
+        case 0b11100: return 0b01000100;
+        case 0b11101: return 0b01000011;
+        case 0b11110: return 0b01000010;
+        case 0b11111: return 0b01000001;
+        default : return 0b0;
+    }
+}
+
 
 class FPU
 {
@@ -268,49 +307,39 @@ class FPU
 
         return y;
     }
-    static uint32_t finv(uint32_t x){
+
+    static uint32_t finv(uint32_t x)
+    {
         using namespace std;
         uint32_t s = bit_range(x, 32, 32); //1bit
         uint32_t e = bit_range(x, 31, 24); //8bit
-        uint32_t index = bit_range(x, 23, 14); //10bit
-        uint32_t a = bit_range(x, 13, 1); //13bit
+        uint32_t m = bit_range(x, 23, 1); //23bit
 
-        char outfile[] = "simu_source/inv_v4.bin";
+        uint32_t ma = (1 << 23) + m; //24bit
+        uint32_t init = map(bit_range(m,23,19)); //8bit
+
+        uint64_t calc1 = ((uint64_t)init << 31) - (uint64_t)init*(uint64_t)init*(uint64_t)ma; //39bit
+
+        uint32_t x1 = bit_range64(calc1,38,27) + bit_range64(calc1,26,26); //12bit
+
+        uint64_t calc2 = ((uint64_t)x1 << 35) - (uint64_t)x1*(uint64_t)x1*(uint64_t)ma; //47bit
+
         
-        ifstream ifs(outfile);
-         if (!ifs){
-             cout << "ファイルが開けません(inv)" << endl;
-            exit(-1);
-        }
-
-        char *c_char;
-        char *g_char;
-        c_char = (char *)malloc(23*sizeof(char));
-        g_char = (char *)malloc(13*sizeof(char));
-        ifs.seekg ( 38*index*sizeof (char) );
-        ifs.read ( c_char, 23*sizeof(char) );
-        ifs.seekg ( 38*index*sizeof(char) + 24*sizeof(char) );
-        ifs.read ( g_char, 13*sizeof(char) );
-        
-        uint32_t c = 0; //23bit
-        uint32_t g = 0; //13bit
-        char_uint_cpy(&c,c_char,23);
-        char_uint_cpy(&g,g_char,13); 
-            
-        ifs.close();
-        free(c_char);
-        free(g_char);
-
         uint32_t ey; //8bit
-        if(index != 0 || a != 0){
-            ey = bit_reverse(e+2,8);
+        if(bit_range64(calc2,46,46)){
+            ey = bit_reverse(e,8) - 1;
         }else{
-            ey = bit_reverse(e+1,8);
+            ey = bit_reverse(e,8) - 2;
         }
 
-        uint64_t calc = (1UL << 35) + ((uint64_t)c << 12) - (uint64_t)(g*a); //36bit
+        uint32_t my; //23bit
+        if(bit_range64(calc2,46,46)){
+            my = bit_range64(calc2,45,23) + bit_range64(calc2,22,22);
+        }else{
+            my = bit_range64(calc2,44,22) + bit_range64(calc2,21,21);
+        }
         
-        uint32_t y = (s << 31) + (ey << 23) + bit_range64(calc,35,13);
+        uint32_t y = (s << 31) + (ey << 23) + my;
 
         return y;
     }
