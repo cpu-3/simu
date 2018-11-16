@@ -2,57 +2,68 @@
 class Stat
 {
   public:
-    int stat_lui = 0;
-    int stat_auipc = 0;
-    int stat_jal = 0;
-    int stat_jalr = 0;
-    int stat_beq = 0;
-    int stat_bne = 0;
-    int stat_blt = 0;
-    int stat_bge = 0;
-    int stat_bltu = 0;
-    int stat_bgeu = 0;
-    int stat_lb = 0;
-    int stat_lh = 0;
-    int stat_lw = 0;
-    int stat_lbu = 0;
-    int stat_lhu = 0;
-    int stat_sb = 0;
-    int stat_sh = 0;
-    int stat_sw = 0;
-    int stat_addi = 0;
-    int stat_slti = 0;
-    int stat_sltiu = 0;
-    int stat_xori = 0;
-    int stat_ori = 0;
-    int stat_andi = 0;
-    int stat_slli = 0;
-    int stat_srli = 0;
-    int stat_add = 0;
-    int stat_sub = 0;
-    int stat_sll = 0;
-    int stat_slt = 0;
-    int stat_sltu = 0;
-    int stat_xor = 0;
-    int stat_srl = 0;
-    int stat_sra = 0;
-    int stat_or = 0;
-    int stat_and = 0;
+    unsigned long long stat_lui = 0;
+    unsigned long long stat_auipc = 0;
+    unsigned long long stat_jal = 0;
+    unsigned long long stat_jalr = 0;
+    unsigned long long stat_beq = 0;
+    unsigned long long stat_bne = 0;
+    unsigned long long stat_blt = 0;
+    unsigned long long stat_bge = 0;
+    unsigned long long stat_bltu = 0;
+    unsigned long long stat_bgeu = 0;
+    unsigned long long stat_lb = 0;
+    unsigned long long stat_lh = 0;
+    unsigned long long stat_lw = 0;
+    unsigned long long stat_lbu = 0;
+    unsigned long long stat_lhu = 0;
+    unsigned long long stat_sb = 0;
+    unsigned long long stat_sh = 0;
+    unsigned long long stat_sw = 0;
+    unsigned long long stat_addi = 0;
+    unsigned long long stat_slti = 0;
+    unsigned long long stat_sltiu = 0;
+    unsigned long long stat_xori = 0;
+    unsigned long long stat_ori = 0;
+    unsigned long long stat_andi = 0;
+    unsigned long long stat_slli = 0;
+    unsigned long long stat_srli = 0;
+    unsigned long long stat_add = 0;
+    unsigned long long stat_sub = 0;
+    unsigned long long stat_sll = 0;
+    unsigned long long stat_slt = 0;
+    unsigned long long stat_sltu = 0;
+    unsigned long long stat_xor = 0;
+    unsigned long long stat_srl = 0;
+    unsigned long long stat_sra = 0;
+    unsigned long long stat_or = 0;
+    unsigned long long stat_and = 0;
     
-    int stat_flw = 0;
-    int stat_fsw = 0;
-    int stat_fadd = 0;
-    int stat_fsub = 0;
-    int stat_fmul = 0;
-    int stat_fdiv = 0;
-    int stat_fsqrt = 0;
-    int stat_fsgnj = 0;
-    int stat_fsgnjn = 0;
-    int stat_fcvt_w_s = 0;
-    int stat_fcvt_s_w = 0;
-    int stat_feq = 0;
-    int stat_flt = 0;
-    int stat_fle = 0;
+    unsigned long long stat_flw = 0;
+    unsigned long long stat_fsw = 0;
+    unsigned long long stat_fadd = 0;
+    unsigned long long stat_fsub = 0;
+    unsigned long long stat_fmul = 0;
+    unsigned long long stat_fdiv = 0;
+    unsigned long long stat_fsqrt = 0;
+    unsigned long long stat_fsgnj = 0;
+    unsigned long long stat_fsgnjn = 0;
+    unsigned long long stat_fcvt_w_s = 0;
+    unsigned long long stat_fcvt_s_w = 0;
+    unsigned long long stat_feq = 0;
+    unsigned long long stat_flt = 0;
+    unsigned long long stat_fle = 0;
+
+    unsigned long long all() {
+      return stat_lui + stat_auipc + stat_jal + stat_jalr + stat_beq + stat_bne + stat_blt + 
+             stat_bge + stat_bltu + stat_bgeu + stat_lb + stat_lh + stat_lw + stat_lbu + 
+             stat_lhu + stat_sb + stat_sh + stat_sw + stat_addi + stat_slti + stat_sltiu + 
+             stat_xori + stat_ori + stat_andi + stat_slli + stat_srli + stat_add + stat_sub +
+             stat_sll + stat_slt + stat_sltu + stat_xor + stat_srl + stat_sra + stat_or +
+             stat_and + stat_flw + stat_fsw + stat_fadd + stat_fsub + stat_fmul + stat_fdiv +
+             stat_fsqrt + stat_fsgnj + stat_fsgnjn + stat_fcvt_s_w + stat_fcvt_w_s + stat_feq +
+             stat_flt + stat_fle;
+    }
 
     void show_stats(){
       std::cout <<"Stat:" << std::endl;
@@ -88,7 +99,6 @@ class Stat
       std::cout << " slt: "   << stat_slt;
       std::cout << " sltu: "  << stat_sltu;
       std::cout << " xor: "   << stat_xor   << std::endl;
-      std::cout << "xor: "   << stat_xor;
       std::cout << " srl: "   << stat_srl;
       std::cout << " sra: "   << stat_sra;
       std::cout << " or: "    << stat_or;
@@ -100,7 +110,6 @@ class Stat
       std::cout << " fsub: "  << stat_fsub  << std::endl;
       std::cout << "fmul: "  << stat_fmul;
       std::cout << " fdiv: "  << stat_fdiv;
-      std::cout << " fdiv: "  << stat_fdiv;
       std::cout << " fsqrt: " << stat_fsqrt << std::endl;
       std::cout << "fsgnj: " << stat_fsgnj;
       std::cout << " fsgnjn: " << stat_fsgnjn;
@@ -109,6 +118,7 @@ class Stat
       std::cout << "feq: "   << stat_feq;
       std::cout << " flt: "   << stat_flt;
       std::cout << " fle: "   << stat_fle   << std::endl;
+      std::cout << "--> All: " << all() << std::endl;
  
       std::cout << std::endl;
     }

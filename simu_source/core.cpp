@@ -841,6 +841,7 @@ class Core
         delete r;
         delete m;
         delete io;
+        delete stat;
     }
     void show_stack_from_top()
     {
