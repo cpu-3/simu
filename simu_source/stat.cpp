@@ -1,126 +1,190 @@
-//TODO sort
-class Stat
+typedef struc STATDATA{
+    unsigned long long->stat;
+    char name[16];
+} Statdata;
+
+class stat
 {
   public:
-    unsigned long long stat_lui = 0;
-    unsigned long long stat_auipc = 0;
-    unsigned long long stat_jal = 0;
-    unsigned long long stat_jalr = 0;
-    unsigned long long stat_beq = 0;
-    unsigned long long stat_bne = 0;
-    unsigned long long stat_blt = 0;
-    unsigned long long stat_bge = 0;
-    unsigned long long stat_bltu = 0;
-    unsigned long long stat_bgeu = 0;
-    unsigned long long stat_lb = 0;
-    unsigned long long stat_lh = 0;
-    unsigned long long stat_lw = 0;
-    unsigned long long stat_lbu = 0;
-    unsigned long long stat_lhu = 0;
-    unsigned long long stat_sb = 0;
-    unsigned long long stat_sh = 0;
-    unsigned long long stat_sw = 0;
-    unsigned long long stat_addi = 0;
-    unsigned long long stat_slti = 0;
-    unsigned long long stat_sltiu = 0;
-    unsigned long long stat_xori = 0;
-    unsigned long long stat_ori = 0;
-    unsigned long long stat_andi = 0;
-    unsigned long long stat_slli = 0;
-    unsigned long long stat_srli = 0;
-    unsigned long long stat_add = 0;
-    unsigned long long stat_sub = 0;
-    unsigned long long stat_sll = 0;
-    unsigned long long stat_slt = 0;
-    unsigned long long stat_sltu = 0;
-    unsigned long long stat_xor = 0;
-    unsigned long long stat_srl = 0;
-    unsigned long long stat_sra = 0;
-    unsigned long long stat_or = 0;
-    unsigned long long stat_and = 0;
+    Statdata lui;
+	lui->stat = 0;
+	strcpy(lui->name, lui);
+    Statdata auipc;
+	auipc->stat = 0;
+	strcpy(auipc->name, auipc);
+    Statdata jal;
+	jal->stat = 0;
+	strcpy(jal->name, jal);
+    Statdata jalr;
+	jalr->stat = 0;
+	strcpy(jalr->name, jalr);
+    Statdata beq;
+	beq->stat = 0;
+	strcpy(beq->name, beq);
+    Statdata bne;
+	bne->stat = 0;
+	strcpy(bne->name, bne);
+    Statdata blt;
+	blt->stat = 0;
+	strcpy(blt->name, blt);
+    Statdata bge;
+	bge->stat = 0;
+	strcpy(bge->name, bge);
+    Statdata bltu;
+	bltu->stat = 0;
+	strcpy(bltu->name, bltu);
+    Statdata bgeu;
+	bgeu->stat = 0;
+	strcpy(bgeu->name, bgeu);
+    Statdata lb;
+	lb->stat = 0;
+	strcpy(lb->name, lb);
+    Statdata lh;
+	lh->stat = 0;
+	strcpy(lh->name, lh);
+    Statdata lw;
+	lw->stat = 0;
+	strcpy(lw->name, lw);
+    Statdata lbu;
+	lbu->stat = 0;
+	strcpy(lbu->name, lbu);
+    Statdata lhu;
+	lhu->stat = 0;
+	strcpy(lhu->name, lhu);
+    Statdata sb;
+	sb->stat = 0;
+	strcpy(sb->name, sb);
+    Statdata sh;
+	sh->stat = 0;
+	strcpy(sh->name, sh);
+    Statdata sw;
+	sw->stat = 0;
+	strcpy(sw->name, sw);
+    Statdata addi;
+	addi->stat = 0;
+	strcpy(addi->name, addi);
+    Statdata slti;
+	slti->stat = 0;
+	strcpy(slti->name, slti);
+    Statdata sltiu;
+	sltiu->stat = 0;
+	strcpy(sltiu->name, sltiu);
+    Statdata xori;
+	xori->stat = 0;
+	strcpy(xori->name, xori);
+    Statdata ori;
+	ori->stat = 0;
+	strcpy(ori->name, ori);
+    Statdata andi;
+	andi->stat = 0;
+	strcpy(andi->name, andi);
+    Statdata slli;
+	slli->stat = 0;
+	strcpy(slli->name, slli);
+    Statdata srli;
+	srli->stat = 0;
+	strcpy(srli->name, srli);
+    Statdata add;
+	add->stat = 0;
+	strcpy(add->name, add);
+    Statdata sub;
+	sub->stat = 0;
+	strcpy(sub->name, sub);
+    Statdata sll;
+	sll->stat = 0;
+	strcpy(sll->name, sll);
+    Statdata slt;
+	slt->stat = 0;
+	strcpy(slt->name, slt);
+    Statdata sltu;
+	sltu->stat = 0;
+	strcpy(sltu->name, sltu);
+    Statdata _xor;
+    Statdata srl;
+	srl->stat = 0;
+	strcpy(srl->name, srl);
+    Statdata sra;
+	sra->stat = 0;
+	strcpy(sra->name, sra);
+    Statdata _or;
+    Statdata _and;
     
-    unsigned long long stat_flw = 0;
-    unsigned long long stat_fsw = 0;
-    unsigned long long stat_fadd = 0;
-    unsigned long long stat_fsub = 0;
-    unsigned long long stat_fmul = 0;
-    unsigned long long stat_fdiv = 0;
-    unsigned long long stat_fsqrt = 0;
-    unsigned long long stat_fsgnj = 0;
-    unsigned long long stat_fsgnjn = 0;
-    unsigned long long stat_fcvt_w_s = 0;
-    unsigned long long stat_fcvt_s_w = 0;
-    unsigned long long stat_feq = 0;
-    unsigned long long stat_flt = 0;
-    unsigned long long stat_fle = 0;
+    Statdata flw;
+	flw->stat = 0;
+	strcpy(flw->name, flw);
+    Statdata fsw;
+	fsw->stat = 0;
+	strcpy(fsw->name, fsw);
+    Statdata fadd;
+	fadd->stat = 0;
+	strcpy(fadd->name, fadd);
+    Statdata fsub;
+	fsub->stat = 0;
+	strcpy(fsub->name, fsub);
+    Statdata fmul;
+	fmul->stat = 0;
+	strcpy(fmul->name, fmul);
+    Statdata fdiv;
+	fdiv->stat = 0;
+	strcpy(fdiv->name, fdiv);
+    Statdata fsqrt;
+	fsqrt->stat = 0;
+	strcpy(fsqrt->name, fsqrt);
+    Statdata fsgnj;
+	fsgnj->stat = 0;
+	strcpy(fsgnj->name, fsgnj);
+    Statdata fsgnjn;
+	fsgnjn->stat = 0;
+	strcpy(fsgnjn->name, fsgnjn);
+    Statdata fcvt_w_s;
+    Statdata fcvt_s_w;
+    Statdata feq;
+	feq->stat = 0;
+	strcpy(feq->name, feq);
+    Statdata flt;
+	flt->stat = 0;
+	strcpy(flt->name, flt);
+    Statdata fle;
+	fle->stat = 0;
+	strcpy(fle->name, fle);
 
     unsigned long long all() {
-      return stat_lui + stat_auipc + stat_jal + stat_jalr + stat_beq + stat_bne + stat_blt + 
-             stat_bge + stat_bltu + stat_bgeu + stat_lb + stat_lh + stat_lw + stat_lbu + 
-             stat_lhu + stat_sb + stat_sh + stat_sw + stat_addi + stat_slti + stat_sltiu + 
-             stat_xori + stat_ori + stat_andi + stat_slli + stat_srli + stat_add + stat_sub +
-             stat_sll + stat_slt + stat_sltu + stat_xor + stat_srl + stat_sra + stat_or +
-             stat_and + stat_flw + stat_fsw + stat_fadd + stat_fsub + stat_fmul + stat_fdiv +
-             stat_fsqrt + stat_fsgnj + stat_fsgnjn + stat_fcvt_s_w + stat_fcvt_w_s + stat_feq +
-             stat_flt + stat_fle;
+      return lui->stat + auipc->stat + jal->stat + jalr->stat + beq->stat + bne->stat + blt->stat +
+             bge->stat + bltu->stat + bgeu->stat + lb->stat + lh->stat + lw->stat + lbu->stat +
+             lhu->stat + sb->stat + sh->stat + sw->stat + addi->stat + slti->stat + sltiu->stat +
+             xori->stat + ori->stat + andi->stat + slli->stat + srli->stat + add->stat + sub->stat +
+             sll->stat + slt->stat + sltu->stat + _xor->stat + srl->stat + sra->stat + _or->stat +
+             _and->stat + flw->stat + fsw->stat + fadd->stat + fsub->stat + fmul->stat + fdiv->stat +
+             fsqrt->stat + fsgnj->stat + fsgnjn->stat + fcvt_s_w->stat + fcvt_w_s->stat + feq->stat +
+             flt->stat + fle->stat;
     }
 
-    void show_stats(){
-      std::cout <<"Stat:" << std::endl;
-      std::cout << "lui: "   << stat_lui;
-      std::cout << " auipc: " << stat_auipc;
-      std::cout << " jal: "   << stat_jal;
-      std::cout << " jalr: "  << stat_jalr  << std::endl;
-      std::cout << "beq: "   << stat_beq;
-      std::cout << " bne: "   << stat_bne;
-      std::cout << " blt: "   << stat_blt;
-      std::cout << " bge: "   << stat_bge   << std::endl;
-      std::cout << "bltu: "  << stat_bltu;
-      std::cout << " bgeu: "  << stat_bgeu;
-      std::cout << " lb: "    << stat_lb;
-      std::cout << " lh: "    << stat_lh    << std::endl;
-      std::cout << "lw: "    << stat_lw;
-      std::cout << " lbu: "   << stat_lbu;
-      std::cout << " lhu: "   << stat_lhu;
-      std::cout << " sb: "    << stat_sb    << std::endl;
-      std::cout << "sh: "    << stat_sh;
-      std::cout << " sw: "    << stat_sw;
-      std::cout << " addi: "  << stat_addi;
-      std::cout << " slti: "  << stat_slti  << std::endl;
-      std::cout << "sltiu: " << stat_sltiu;
-      std::cout << " xori: "  << stat_xori;
-      std::cout << " ori: "   << stat_ori;
-      std::cout << " andi: "  << stat_andi  << std::endl;
-      std::cout << "slli: "  << stat_slli;
-      std::cout << " srli: "  << stat_srli;
-      std::cout << " add: "   << stat_add;
-      std::cout << " sub: "   << stat_sub   << std::endl;
-      std::cout << "sll: "   << stat_sll;
-      std::cout << " slt: "   << stat_slt;
-      std::cout << " sltu: "  << stat_sltu;
-      std::cout << " xor: "   << stat_xor   << std::endl;
-      std::cout << " srl: "   << stat_srl;
-      std::cout << " sra: "   << stat_sra;
-      std::cout << " or: "    << stat_or;
-      std::cout << " and: "   << stat_and   << std::endl;
-
-      std::cout << "flw: "   << stat_flw;
-      std::cout << " fsw: "   << stat_fsw;
-      std::cout << " fadd: "  << stat_fadd;
-      std::cout << " fsub: "  << stat_fsub  << std::endl;
-      std::cout << "fmul: "  << stat_fmul;
-      std::cout << " fdiv: "  << stat_fdiv;
-      std::cout << " fsqrt: " << stat_fsqrt << std::endl;
-      std::cout << "fsgnj: " << stat_fsgnj;
-      std::cout << " fsgnjn: " << stat_fsgnjn;
-      std::cout << " fcvt_w_s: " << stat_fcvt_w_s;
-      std::cout << " fcvt_s_w: " << stat_fcvt_s_w << std::endl;
-      std::cout << "feq: "   << stat_feq;
-      std::cout << " flt: "   << stat_flt;
-      std::cout << " fle: "   << stat_fle   << std::endl;
-      std::cout << "--> All: " << all() << std::endl;
- 
-      std::cout << std::endl;
+    void show->stats(){
+        std::vector<*Statdata> stats =
+            {lui, auipc, jal, jalr, beq, bne, blt,
+             bge, bltu, bgeu, lb, lh, lw, lbu,
+             lhu, sb, sh, sw, addi, slti, sltiu,
+             xori, ori, andi, slli, srli, add, sub,
+             sll, slt, sltu, _xor, srl, sra, _or,
+             _and, flw, fsw, fadd, fsub, fmul, fdiv,
+             fsqrt, fsgnj, fsgnjn, fcvt_s_w, fcvt_w_s, feq,
+             flt, fle};
+        std::vector<(unsigned long long int)> statsint;
+        int i;
+        for(i = 0; i < stats.size; i++){
+            statint[i] = stats[i]->stat;
+        }
+        std::sort(statint.begin(), statint.end());
+        for(i = 0; i < stats.size; i++){
+            stats[i]->stat = statint[i];
+        }
+        std::cout << "stat:" << std::endl;
+        for(int i = 0; i <->stats.size; i++){
+            std::cout << stats[i]->name << ": " << stats[i]->stat << std::endl;
+        }
+        
+        std::cout << "--> All: " << all() << std::endl;
+        std::cout << std::endl;
     }
 };
 
