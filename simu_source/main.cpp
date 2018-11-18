@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <cmath>
 #include <fstream>
+#include <algorithm>
 #include "inst.hpp"
 #include "stat.cpp"
 #include "dump.cpp"

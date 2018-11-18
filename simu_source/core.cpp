@@ -322,7 +322,7 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::xor_(x, y));
-        (stat->xor.stat)++;
+        (stat->xor_.stat)++;
     }
     void srl(Decoder *d)
     {
@@ -343,14 +343,14 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::or_(x, y));
-        (stat->or.stat)++;
+        (stat->or_.stat)++;
     }
     void and_(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::and_(x, y));
-        (stat->and.stat)++;
+        (stat->and_.stat)++;
     }
 
     void branch(Decoder *d)
@@ -624,7 +624,7 @@ class Core
         }
         float x = r->get_freg(d->rs1());
         r->set_ireg(d->rd(), FPU::float2int(x));
-        (stat->fcvt.stat_w_s)++;
+        (stat->fcvt_w_s.stat)++;
     }
     void fcvt_s_w(Decoder *d)
     {
@@ -636,7 +636,7 @@ class Core
         }
         uint32_t x = r->get_ireg(d->rs1());
         r->set_freg(d->rd(), FPU::int2float(x));
-        (stat->fcvt.stat_s_w)++;
+        (stat->fcvt_s_w.stat)++;
     }
 
     void feq(Decoder *d)
