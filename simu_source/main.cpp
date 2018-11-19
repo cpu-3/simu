@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 #include <algorithm>
+#include <vector>
 #include "inst.hpp"
 #include "stat.cpp"
 #include "dump.cpp"
