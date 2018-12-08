@@ -55,6 +55,7 @@ class Core
     Register *r;
     IO *io;
     Stat *stat;
+    Disasm *disasm;
 
     Settings *settings;
 
@@ -63,6 +64,11 @@ class Core
         uint32_t val = d->u_type_imm();
         r->set_ireg(d->rd(), val);
         (stat->lui.stat)++;
+        disasm->type = 'u';
+        disasm->inst_name = "lui";
+        disasm->imm = val;
+        disasm->dest = d->rd();
+        //TODO disasm other insts
     }
     void auipc(Decoder *d)
     {
@@ -822,6 +828,7 @@ class Core
         io = new IO;
         m = new Memory(io);
         stat = new Stat;
+        disasm = new Disasm;
 
         this->settings = settings;
 
@@ -842,6 +849,7 @@ class Core
         delete m;
         delete io;
         delete stat;
+        delete disasm;
     }
     void show_stack_from_top()
     {
@@ -867,6 +875,8 @@ class Core
             run(&d);
             if (settings->show_inst_value) {
                 printf("instr:%x %x\n", r->ip, d.code);
+                std::cout << std::bitset<32>(d.code) << std::endl;
+                //disasm->print_inst(disasm->type);
             }
             if (settings->show_registers) {
                 r->info();
