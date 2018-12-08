@@ -86,7 +86,7 @@ static uint32_t fmul(uint32_t x1, uint32_t x2)
     uint32_t ovf = bit_range(eadd,8,8) & bit_range(eadd,7,7);
 
     uint32_t y;
-    if(e1 != 0 || e2 != 0 || ey != 0){
+    if(e1 != 0 && e2 != 0 && ey != 0){
         y = (sy << 31) + (ey << 23) + bit_range(my,23,1);
     }else{
         y = sy << 31;
