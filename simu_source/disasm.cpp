@@ -2,10 +2,10 @@ class Disasm
 {
     std::string reg(uint32_t num){
         if(num == 0){
-            return "zero";
+            return "x0";
         }
         else if (num == 1){
-            return "ra";
+            return "x1";
         }
         else if (num == 2){
             return "sp";
@@ -39,7 +39,7 @@ class Disasm
   public:
     char type;
     std::string inst_name;
-    uint32_t imm;
+    int32_t imm;
     uint32_t dest;
     uint32_t src;
     uint32_t src1;
@@ -51,8 +51,7 @@ class Disasm
             std::cout << inst_name << ", "
                       << reg(dest) << ","
                       << reg(src1) << ","
-                      << reg(src2) << ","
-                      << std::endl;
+                      << reg(src2) << std::endl;
         }
         else if(type == 'i'){
             std::cout << inst_name << ", "
