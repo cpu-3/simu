@@ -64,7 +64,7 @@ class Core
         uint32_t imm = d->u_type_imm();
         r->set_ireg(d->rd(), imm);
         (stat->lui.stat)++;
-        disasm->type = 'u';
+        disasm->type = "u";
         disasm->inst_name = "lui";
         disasm->dest = d->rd();
         disasm->imm = d->u_type_imm();
@@ -76,7 +76,7 @@ class Core
         imm += (int32_t)(r->ip);
         r->set_ireg(d->rd(), imm);
         (stat->auipc.stat)++;
-        disasm->type = 'u';
+        disasm->type = "u";
         disasm->inst_name = "auipc";
         disasm->dest = d->rd();
         disasm->imm = d->u_type_imm();
@@ -88,7 +88,7 @@ class Core
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = (int32_t)r->ip + imm;
         (stat->jal.stat)++;
-        disasm->type = 'j';
+        disasm->type = "j";
         disasm->inst_name = "jal";
         disasm->dest = d->rd();
         disasm->imm = d->jal_imm();
@@ -101,7 +101,7 @@ class Core
         r->set_ireg(d->rd(), r->ip + 4);
         r->ip = s + imm;
         (stat->jalr.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "jalr";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -123,7 +123,7 @@ class Core
     {
         branch_inner(d, r->get_ireg(d->rs1()) == r->get_ireg(d->rs2()));
         (stat->beq.stat)++;
-        disasm->type = 'b';
+        disasm->type = "b";
         disasm->inst_name = "beq";
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
@@ -133,7 +133,7 @@ class Core
     {
         branch_inner(d, r->get_ireg(d->rs1()) != r->get_ireg(d->rs2()));
         (stat->bne.stat)++;
-        disasm->type = 'b';
+        disasm->type = "b";
         disasm->inst_name = "bne";
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
@@ -143,7 +143,7 @@ class Core
     {
         branch_inner(d, (int32_t)r->get_ireg(d->rs1()) < (int32_t)r->get_ireg(d->rs2()));
         (stat->blt.stat)++;
-        disasm->type = 'b';
+        disasm->type = "b";
         disasm->inst_name = "blt";
         disasm->src1 = (int32_t)d->rs1();
         disasm->src2 = (int32_t)d->rs2();
@@ -153,7 +153,7 @@ class Core
     {
         branch_inner(d, (int64_t)r->get_ireg(d->rs1()) >= (int64_t)r->get_ireg(d->rs2()));
         (stat->bge.stat)++;
-        disasm->type = 'b';
+        disasm->type = "b";
         disasm->inst_name = "bge";
         disasm->src1 = (int64_t)d->rs1();
         disasm->src2 = (int64_t)d->rs2();
@@ -163,7 +163,7 @@ class Core
     {
         branch_inner(d, r->get_ireg(d->rs1()) < r->get_ireg(d->rs2()));
         (stat->bltu.stat)++;
-        disasm->type = 'b';
+        disasm->type = "b";
         disasm->inst_name = "bltu";
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
@@ -173,7 +173,7 @@ class Core
     {
         branch_inner(d, r->get_ireg(d->rs1()) >= r->get_ireg(d->rs2()));
         (stat->bgeu.stat)++;
-        disasm->type = 'b';
+        disasm->type = "b";
         disasm->inst_name = "bgeu";
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
@@ -190,7 +190,7 @@ class Core
         uint32_t val = m->read_mem_1(addr);
         r->set_ireg(d->rd(), val);
         (stat->lb.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "lb";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -206,7 +206,7 @@ class Core
         uint32_t val = m->read_mem_2(addr);
         r->set_ireg(d->rd(), val);
         (stat->lh.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "lh";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -222,7 +222,7 @@ class Core
         uint32_t val = m->read_mem_4(addr);
         r->set_ireg(d->rd(), val);
         (stat->lw.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "lw";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -236,7 +236,7 @@ class Core
         uint32_t val = m->read_mem_1(addr);
         r->set_ireg(d->rd(), val);
         (stat->lbu.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "lbu";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -250,7 +250,7 @@ class Core
         uint32_t val = m->read_mem_2(addr);
         r->set_ireg(d->rd(), val);
         (stat->lhu.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "lhu";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -269,7 +269,7 @@ class Core
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
         (stat->sb.stat)++;
-        disasm->type = 's';
+        disasm->type = "s";
         disasm->inst_name = "sb";
         disasm->src = d->rs2();
         disasm->base = d->rs1();
@@ -288,7 +288,7 @@ class Core
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
         (stat->sh.stat)++;
-        disasm->type = 's';
+        disasm->type = "s";
         disasm->inst_name = "sh";
         disasm->src = d->rs2();
         disasm->base = d->rs1();
@@ -305,7 +305,7 @@ class Core
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
         (stat->sw.stat)++;
-        disasm->type = 's';
+        disasm->type = "s";
         disasm->inst_name = "sw";
         disasm->src = d->rs2();
         disasm->base = d->rs1();
@@ -318,7 +318,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::add(x, y));
         (stat->addi.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "addi";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -330,7 +330,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::slt(x, y));
         (stat->slti.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "slti";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -342,7 +342,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sltu(x, y));
         (stat->sltiu.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "sltiu";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -354,7 +354,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::xor_(x, y));
         (stat->xori.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "xori";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -366,7 +366,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::or_(x, y));
         (stat->ori.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "ori";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -378,7 +378,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::and_(x, y));
         (stat->andi.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "andi";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -390,7 +390,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::sll(x, y));
         (stat->slli.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "slli";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -402,7 +402,7 @@ class Core
         uint32_t y = d->i_type_imm();
         r->set_ireg(d->rd(), ALU::srl(x, y));
         (stat->srli.stat)++;
-        disasm->type = 'i';
+        disasm->type = "i";
         disasm->inst_name = "srli";
         disasm->dest = d->rd();
         disasm->base = d->rs1();
@@ -416,7 +416,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::add(x, y));
         (stat->add.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "add";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -428,7 +428,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sub(x, y));
         (stat->sub.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "sub";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -440,7 +440,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sll(x, y));
         (stat->sll.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "sll";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -452,7 +452,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::slt(x, y));
         (stat->slt.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "slt";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -464,7 +464,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sltu(x, y));
         (stat->sltu.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "sltu";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -476,7 +476,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::xor_(x, y));
         (stat->xor_.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "xor";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -488,7 +488,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::srl(x, y));
         (stat->srl.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "srl";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -500,7 +500,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::sra(x, y));
         (stat->sra.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "sra";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -512,7 +512,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::or_(x, y));
         (stat->or_.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "or";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -524,7 +524,7 @@ class Core
         uint32_t y = r->get_ireg(d->rs2());
         r->set_ireg(d->rd(), ALU::and_(x, y));
         (stat->and_.stat)++;
-        disasm->type = 'r';
+        disasm->type = "r";
         disasm->inst_name = "and";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
@@ -710,6 +710,11 @@ class Core
         uint32_t val = m->read_mem_4(addr);
         r->set_freg_raw(d->rd(), val);
         (stat->flw.stat)++;
+        disasm->type = "fi";
+        disasm->inst_name = "flw";
+        disasm->dest = d->rd();
+        disasm->base = d->rs1();
+        disasm->imm = d->i_type_imm();
     }
 
     void fsw(Decoder *d)
@@ -722,6 +727,11 @@ class Core
         uint32_t addr = base + offset;
         m->write_mem(addr, src);
         (stat->fsw.stat)++;
+        disasm->type = "fs";
+        disasm->inst_name = "fsw";
+        disasm->src = d->rs2();
+        disasm->base = d->rs1();
+        disasm->imm = d->s_type_imm();
     }
 
     void fadd(Decoder *d)
@@ -733,6 +743,11 @@ class Core
         uint32_t y = r->get_freg_raw(d->rs2());
         r->set_freg_raw(d->rd(), FPU::fadd(x, y));
         (stat->fadd.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fadd";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void fsub(Decoder *d)
     {
@@ -743,6 +758,11 @@ class Core
         uint32_t y = r->get_freg_raw(d->rs2());
         r->set_freg_raw(d->rd(), FPU::fsub(x, y));
         (stat->fsub.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fsub";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void fmul(Decoder *d)
     {
@@ -753,6 +773,11 @@ class Core
         uint32_t y = r->get_freg_raw(d->rs2());
         r->set_freg_raw(d->rd(), FPU::fmul(x, y));
         (stat->fmul.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fmul";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void fdiv(Decoder *d)
     {
@@ -763,6 +788,11 @@ class Core
         uint32_t y = r->get_freg_raw(d->rs2());
         r->set_freg_raw(d->rd(), FPU::fdiv(x, y));
         (stat->fdiv.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fdiv";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void fsqrt(Decoder *d)
     {
@@ -775,6 +805,10 @@ class Core
         uint32_t x = r->get_freg_raw(d->rs1());
         r->set_freg_raw(d->rd(), FPU::fsqrt(x));
         (stat->fsqrt.stat)++;
+        disasm->type = "fR";
+        disasm->inst_name = "fsqrt";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
     }
 
     void _fsgnj(Decoder *d) 
@@ -783,6 +817,11 @@ class Core
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), x * y > 0 ? x : -x);
         (stat->fsgnj.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fsgnj";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void fsgnjn(Decoder *d) 
     {
@@ -790,6 +829,11 @@ class Core
         float y = r->get_freg(d->rs2());
         r->set_freg(d->rd(), x * y > 0 ? -x : x);
         (stat->fsgnjn.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fsgnjn";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
 
     void fcvt_w_s(Decoder *d)
@@ -803,6 +847,10 @@ class Core
         float x = r->get_freg(d->rs1());
         r->set_ireg(d->rd(), FPU::float2int(x));
         (stat->fcvt_w_s.stat)++;
+        disasm->type = "fR";
+        disasm->inst_name = "fcvt_w_s";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
     }
     void fcvt_s_w(Decoder *d)
     {
@@ -815,6 +863,10 @@ class Core
         uint32_t x = r->get_ireg(d->rs1());
         r->set_freg(d->rd(), FPU::int2float(x));
         (stat->fcvt_s_w.stat)++;
+        disasm->type = "fR";
+        disasm->inst_name = "fcvt_s_w";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
     }
 
     void feq(Decoder *d)
@@ -823,6 +875,11 @@ class Core
         float y = r->get_freg(d->rs2());
         r->set_ireg(d->rd(),FPU::feq(x,y));
         (stat->feq.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "feq";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void flt(Decoder *d)
     {
@@ -830,6 +887,11 @@ class Core
         float y = r->get_freg(d->rs2());
         r->set_ireg(d->rd(),FPU::flt(x,y));
         (stat->flt.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "flt";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
     void fle(Decoder *d)
     {
@@ -837,6 +899,11 @@ class Core
         float y = r->get_freg(d->rs2());
         r->set_ireg(d->rd(),FPU::fle(x,y));
         (stat->fle.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fle";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
     }
 
     void fload(Decoder *d)
