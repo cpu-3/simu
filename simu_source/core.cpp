@@ -1129,6 +1129,18 @@ class Core
             if (settings->step_execution) {
                 std::string s;
                 std::getline(std::cin, s);
+                if(settings->break_point && s == "c"){
+                    settings->step_execution = false;
+                }
+            }
+            if (settings->break_point) {
+                if(ip == settings->ip){
+                    std::string s;
+                    std::getline(std::cin, s);
+                    if(s != "c"){
+                        settings->step_execution = true;
+                    }
+                }
             }
         }
     }

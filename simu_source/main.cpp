@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <bitset>
+#include <stdlib.h>
 #include "inst.hpp"
 #include "stat.cpp"
 #include "dump.cpp"
@@ -24,7 +25,7 @@ int main(int argc, const char **argv)
         std::cout << "Usage: " << argv[0] << " program file" << std::endl;
         return 0;
     }
-    Settings s = Settings(argc == 2 ? "" : argv[2]);
+    Settings s = Settings(argc == 2 ? "" : argv[2], argc  == 3 ? 0 : atoi(argv[3]));
     Core core((std::string(argv[1])), &s);
     try {
         core.main_loop();
