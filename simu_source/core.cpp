@@ -1113,7 +1113,7 @@ class Core
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
             if (settings->show_inst_value) {
-                printf("ip: %x\n", r->ip);
+                printf("ip: %x\n", ip);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
             }
