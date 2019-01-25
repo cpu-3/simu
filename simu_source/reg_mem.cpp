@@ -34,36 +34,20 @@ class Memory
     void data_mem_check(uint32_t addr, uint8_t size)
     {
         addr_alignment_check(addr);
-        if (addr + size >= memory_lim || addr + size <= IO_mem_lim)
-        {
-            error_dump("多分不正なデータアドレスに書き込もうとしました: %x\n", addr);
-        }
     }
 
     void read_mem_check(uint32_t addr, uint8_t size)
     {
         addr_alignment_check(addr);
-        if (addr + size >= memory_lim)
-        {
-            error_dump("多分不正なデータアドレスを読もうとしました: %x\n", addr);
-        }
     }
 
     void inst_mem_check(uint32_t addr)
     {
         addr_alignment_check(addr);
-        if (addr + 4 > inst_mem_lim)
-        {
-            error_dump("多分不正な命令アドレスにアクセスしようとしました: %x\n", addr);
-        }
     }
 
     void map_mem_check(uint32_t addr, uint32_t size)
     {
-        if ((addr + size) >= memory_lim)
-        {
-            error_dump("多分不正なアドレスにアクセスしようとしました: %x\n", addr);
-        }
     }
 
     bool hook_io_write(uint32_t addr, uint8_t val)
