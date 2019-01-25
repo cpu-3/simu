@@ -1,3 +1,4 @@
+#include "fpu_const.h"
 // get val's [l, r] bit value
 // ex) bit_range(00010011, 7, 1) -> 00010011
 uint32_t bit_range(uint32_t val, int l, int r)
@@ -357,31 +358,8 @@ class FPU
         uint32_t a = bit_range(x, 14, 1); //14bit
         uint32_t d = bit_reverse(bit_range(index,10,10),1); //1bit
 
-        char outfile[] = "simu_source/sqrt_v4.bin";
-        
-        ifstream ifs(outfile);
-         if (!ifs){
-             cout << "ファイルが開けません(sqrt)" << endl;
-            exit(-1);
-        }
-
-        char *c_char;
-        char *g_char;
-        c_char = (char *)malloc(23*sizeof(char));
-        g_char = (char *)malloc(13*sizeof(char));
-        ifs.seekg ( 38*index*sizeof (char) );
-        ifs.read ( c_char, 23*sizeof(char) );
-        ifs.seekg ( 38*index*sizeof(char) + 24*sizeof(char) );
-        ifs.read ( g_char, 13*sizeof(char) );
-        
-        uint32_t c = 0; //23bit
-        uint32_t g = 0; //13bit
-        char_uint_cpy(&c,c_char,23);
-        char_uint_cpy(&g,g_char,13); 
-
-        ifs.close();
-        free(c_char);
-        free(g_char);
+        uint32_t c = fpu_sqrt_c[index]; //23bit
+        uint32_t g = fpu_sqrt_g[index]; //13bit
 
         uint32_t e1 = e - d; //7bit
         uint32_t ey = (bit_range(e1,7,7) << 7) + (bit_reverse(bit_range(e1,7,7),1) << 6) + bit_range(e1,6,1); //8bit
