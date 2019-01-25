@@ -33,17 +33,14 @@ class Memory
 
     void data_mem_check(uint32_t addr, uint8_t size)
     {
-        addr_alignment_check(addr);
     }
 
     void read_mem_check(uint32_t addr, uint8_t size)
     {
-        addr_alignment_check(addr);
     }
 
     void inst_mem_check(uint32_t addr)
     {
-        addr_alignment_check(addr);
     }
 
     void map_mem_check(uint32_t addr, uint32_t size)
