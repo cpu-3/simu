@@ -364,6 +364,7 @@ class Core
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
+        y &= 0b111111111111;
         r->set_ireg(d->rd(), ALU::or_(x, y));
         (stat->ori.stat)++;
         disasm->type = "i";
