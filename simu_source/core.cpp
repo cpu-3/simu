@@ -30,7 +30,7 @@ class ALU
     }
     static uint32_t sltu(uint32_t x, uint32_t y)
     {
-        return x > y;
+        return x < y;
     }
     static uint32_t and_(uint32_t x, uint32_t y)
     {
