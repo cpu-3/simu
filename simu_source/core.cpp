@@ -223,7 +223,9 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
-        uint32_t val = m->read_mem_1(addr);
+        int32_t val = m->read_mem_1(addr);
+        val <<= 24;
+        val >>= 24;
         r->set_ireg(d->rd(), val);
         (stat->lb.stat)++;
         disasm->type = "i";
@@ -239,7 +241,9 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
-        uint32_t val = m->read_mem_2(addr);
+        int32_t val = m->read_mem_2(addr);
+        val <<= 16;
+        val >>= 16;
         r->set_ireg(d->rd(), val);
         (stat->lh.stat)++;
         disasm->type = "i";
@@ -296,9 +300,7 @@ class Core
     void sb(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
-        uint32_t src = r->get_ireg(d->rs2());
-        src <<= 24;
-        src >>= 24;
+        uint8_t src = r->get_ireg(d->rs2()) & 0xff;
         int32_t offset = d->s_type_imm();
         offset <<= 20;
         offset >>= 20;
@@ -315,9 +317,7 @@ class Core
     void sh(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
-        uint32_t src = r->get_ireg(d->rs2());
-        src <<= 16;
-        src >>= 16;
+        uint16_t src = r->get_ireg(d->rs2()) & 0xffff;
         int32_t offset = d->s_type_imm();
         offset <<= 20;
         offset >>= 20;
