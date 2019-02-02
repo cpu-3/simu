@@ -1240,12 +1240,14 @@ class Core
     }
     void main_loop()
     {
+        unsigned long long inst_count = 5; //pipe line
         while (1)
         {
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
             if (settings->show_inst_value) {
+                printf("inst_count: %llx\n", inst_count++);
                 printf("ip: %x\n", ip);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
