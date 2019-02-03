@@ -1108,7 +1108,7 @@ class Core
     }
     void main_loop()
     {
-        unsigned long long inst_count = 5; //pipe line
+        unsigned long long inst_count = 0; //pipe line
         while (1)
         {
             uint32_t ip = r->ip;
