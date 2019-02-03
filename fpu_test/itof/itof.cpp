@@ -70,10 +70,93 @@ static uint32_t itof(uint32_t x)
     else if((mabs >> 28) != 0){
         my = (0b10011011 << 23) + bit_range(mabs, 28, 6);
     }
-    //TODO
-
-    
-        
+    else if((mabs >> 27) != 0){
+        my = (0b10011010 << 23) + bit_range(mabs, 27, 5);
+    }
+    else if((mabs >> 26) != 0){
+        my = (0b10011001 << 23) + bit_range(mabs, 26, 4);
+    }
+    else if((mabs >> 25) != 0){
+        my = (0b10011000 << 23) + bit_range(mabs, 25, 3);
+    }
+    else if((mabs >> 24) != 0){
+        my = (0b10010111 << 23) + bit_range(mabs, 24, 2);
+    }
+    else if((mabs >> 23) != 0){
+        my = (0b10010110 << 23) + bit_range(mabs, 23, 1);
+    }
+    else if((mabs >> 22) != 0){
+        my = (0b10010101 << 23) + (bit_range(mabs, 22, 1) << 1);
+    }
+    else if((mabs >> 21) != 0){
+        my = (0b10010100 << 23) + (bit_range(mabs, 21, 1) << 2);
+    }
+    else if((mabs >> 20) != 0){
+        my = (0b10010011 << 23) + (bit_range(mabs, 20, 1) << 3);
+    }
+    else if((mabs >> 19) != 0){
+        my = (0b10010010 << 23) + (bit_range(mabs, 19, 1) << 4);
+    }
+    else if((mabs >> 18) != 0){
+        my = (0b10010001 << 23) + (bit_range(mabs, 18, 1) << 5);
+    }
+    else if((mabs >> 17) != 0){
+        my = (0b10010000 << 23) + (bit_range(mabs, 17, 1) << 6);
+    }
+    else if((mabs >> 16) != 0){
+        my = (0b10001111 << 23) + (bit_range(mabs, 16, 1) << 7);
+    }
+    else if((mabs >> 15) != 0){
+        my = (0b10001110 << 23) + (bit_range(mabs, 15, 1) << 8);
+    }
+    else if((mabs >> 14) != 0){
+        my = (0b10001101 << 23) + (bit_range(mabs, 14, 1) << 9);
+    }
+    else if((mabs >> 13) != 0){
+        my = (0b10001100 << 23) + (bit_range(mabs, 13, 1) << 10);
+    }
+    else if((mabs >> 12) != 0){
+        my = (0b10001011 << 23) + (bit_range(mabs, 12, 1) << 11);
+    }
+    else if((mabs >> 11) != 0){
+        my = (0b10001010 << 23) + (bit_range(mabs, 11, 1) << 12);
+    }
+    else if((mabs >> 10) != 0){
+        my = (0b10001001 << 23) + (bit_range(mabs, 10, 1) << 13);
+    }
+    else if((mabs >> 9) != 0){
+        my = (0b10001000 << 23) + (bit_range(mabs, 9, 1) << 14);
+    }
+    else if((mabs >> 8) != 0){
+        my = (0b10000111 << 23) + (bit_range(mabs, 8, 1) << 15);
+    }
+    else if((mabs >> 7) != 0){
+        my = (0b10000110 << 23) + (bit_range(mabs, 7, 1) << 16);
+    }
+    else if((mabs >> 6) != 0){
+        my = (0b10000101 << 23) + (bit_range(mabs, 6, 1) << 17);
+    }
+    else if((mabs >> 5) != 0){
+        my = (0b10000100 << 23) + (bit_range(mabs, 5, 1) << 18);
+    }
+    else if((mabs >> 4) != 0){
+        my = (0b10000011 << 23) + (bit_range(mabs, 4, 1) << 19);
+    }
+    else if((mabs >> 3) != 0){
+        my = (0b10000010 << 23) + (bit_range(mabs, 3, 1) << 20);
+    }
+    else if((mabs >> 2) != 0){
+        my = (0b10000001 << 23) + (bit_range(mabs, 2, 1) << 21);
+    }
+    else if((mabs >> 1) != 0){
+        my = (0b10000000 << 23) + (bit_range(mabs, 1, 1) << 22);
+    }
+    else if((mabs >> 0) != 0){
+        my = 0b01111111 << 23;
+    }
+    else{
+        my = 0b10011110 << 23;
+    }
 
     uint32_t y;
 
@@ -92,20 +175,21 @@ int main(){
     uint32_t seikai;
     srand((unsigned) time(NULL));
     
-    for(int j = 0; j < 50; j++){
+    for(int j = 0; j < 1000; j++){
 
-        data.i = rand() / (RAND_MAX)) * 100000.0;
+        data.i = (int)rand() / 10000;
         result.i = itof(data.i);
-        seikai = data.i;
 
-        printf("data:%f\n", data.f);
-        printf("itof結果:\t%d\n", result.i);
-        printf("理論値:\t%d\n", seikai);
-
+        printf("data:\t%d\n", data.i);
+        printf("itof:\t%f\n", result.f);
+        
+        /*
         //誤差が生じた場合に出力
-        if(result.i-seikai != 0){
-            printf("残念！\ndata:%f\n", data.f);
+        if(fabs(result.f-data.i) > 0.1){
+            printf("\n残念！\ndata:%d", data.i);
+            printf("\nitof:%f", result.f);
         }
+        */
     }
 
     return 0;
