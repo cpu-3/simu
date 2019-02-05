@@ -30,7 +30,7 @@ class ALU
     }
     static uint32_t sltu(uint32_t x, uint32_t y)
     {
-        return x < y;
+        return x > y;
     }
     static uint32_t and_(uint32_t x, uint32_t y)
     {
@@ -364,7 +364,6 @@ class Core
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
-        y &= 0b111111111111;
         r->set_ireg(d->rd(), ALU::or_(x, y));
         (stat->ori.stat)++;
         disasm->type = "i";
@@ -409,8 +408,8 @@ class Core
         disasm->base = d->rs1();
         disasm->imm = d->i_type_imm();
     }
-    // void srai 
-    
+    // void srai
+
     void add(Decoder *d)
     {
         uint32_t x = r->get_ireg(d->rs1());
@@ -812,7 +811,7 @@ class Core
         disasm->src1 = d->rs1();
     }
 
-    void _fsgnj(Decoder *d) 
+    void _fsgnj(Decoder *d)
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
@@ -824,7 +823,7 @@ class Core
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
     }
-    void fsgnjn(Decoder *d) 
+    void fsgnjn(Decoder *d)
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
@@ -935,9 +934,9 @@ class Core
         }
     }
 
-    void fsgnj(Decoder *d) 
+    void fsgnj(Decoder *d)
     {
-        switch (static_cast<FSgnj_Inst>(d->funct3())) 
+        switch (static_cast<FSgnj_Inst>(d->funct3()))
         {
         case FSgnj_Inst::FSGNJ:
             _fsgnj(d);
