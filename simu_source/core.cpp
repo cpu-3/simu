@@ -30,7 +30,7 @@ class ALU
     }
     static uint32_t sltu(uint32_t x, uint32_t y)
     {
-        return x < y;
+        return x > y;
     }
     static uint32_t and_(uint32_t x, uint32_t y)
     {
@@ -43,42 +43,6 @@ class ALU
     static uint32_t xor_(uint32_t x, uint32_t y)
     {
         return x ^ y;
-    }
-    static uint32_t mul(int32_t x, int32_t y) 
-    {
-        return x * y;
-    }
-    static uint32_t mulh(int32_t x, int32_t y) {
-        int64_t z = (int64_t)x * (int64_t)y;
-        return (uint64_t)z >> 32;
-    }
-    static uint32_t mulhu(uint32_t x, uint32_t y) {
-        uint64_t z = (uint64_t)x * (uint64_t)y;
-        return (uint64_t)z >> 32;
-    }
-    static uint32_t mulhsu(int32_t x, uint32_t y) {
-        int64_t z = (int64_t)x * (int64_t)y;
-        return (uint64_t)z >> 32;
-    }
-    static uint32_t div(int32_t x, int32_t y) 
-    {
-        return x / y;
-    }
-    static uint32_t rem(int32_t x, int32_t y) 
-    {
-        return x % y;
-    }
-    static uint32_t mulu(uint32_t x, uint32_t y) 
-    {
-        return x * y;
-    }
-    static uint32_t divu(uint32_t x, uint32_t y) 
-    {
-        return x / y;
-    }
-    static uint32_t remu(uint32_t x, uint32_t y) 
-    {
-        return x % y;
     }
 };
 
@@ -223,9 +187,7 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
-        int32_t val = m->read_mem_1(addr);
-        val <<= 24;
-        val >>= 24;
+        uint32_t val = m->read_mem_1(addr);
         r->set_ireg(d->rd(), val);
         (stat->lb.stat)++;
         disasm->type = "i";
@@ -241,9 +203,7 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
-        int32_t val = m->read_mem_2(addr);
-        val <<= 16;
-        val >>= 16;
+        uint32_t val = m->read_mem_2(addr);
         r->set_ireg(d->rd(), val);
         (stat->lh.stat)++;
         disasm->type = "i";
@@ -300,7 +260,9 @@ class Core
     void sb(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
-        uint8_t src = r->get_ireg(d->rs2()) & 0xff;
+        uint32_t src = r->get_ireg(d->rs2());
+        src <<= 24;
+        src >>= 24;
         int32_t offset = d->s_type_imm();
         offset <<= 20;
         offset >>= 20;
@@ -317,7 +279,9 @@ class Core
     void sh(Decoder *d)
     {
         uint32_t base = r->get_ireg(d->rs1());
-        uint16_t src = r->get_ireg(d->rs2()) & 0xffff;
+        uint32_t src = r->get_ireg(d->rs2());
+        src <<= 16;
+        src >>= 16;
         int32_t offset = d->s_type_imm();
         offset <<= 20;
         offset >>= 20;
@@ -400,7 +364,6 @@ class Core
     {
         uint32_t x = r->get_ireg(d->rs1());
         uint32_t y = d->i_type_imm();
-        y &= 0b111111111111;
         r->set_ireg(d->rd(), ALU::or_(x, y));
         (stat->ori.stat)++;
         disasm->type = "i";
@@ -568,62 +531,6 @@ class Core
         disasm->src2 = d->rs2();
     }
 
-    void mul(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::mul(x, y));
-    }
-
-    void mulh(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::mulh(x, y));
-    }
-
-    void mulhu(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::mulhu(x, y));
-    }
-
-    void mulhsu(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::mulhsu(x, y));
-    }
-
-    void div(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::div(x, y));
-    }
-
-    void rem(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::rem(x, y));
-    }
-
-    void divu(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::divu(x, y));
-    }
-
-    void remu(Decoder *d)
-    {
-        uint32_t x = r->get_ireg(d->rs1());
-        uint32_t y = r->get_ireg(d->rs2());
-        r->set_ireg(d->rd(), ALU::remu(x, y));
-    }
-
     void branch(Decoder *d)
     {
         switch (static_cast<Branch_Inst>(d->funct3()))
@@ -760,48 +667,8 @@ class Core
         }
     }
 
-    void mul_div(Decoder *d) 
-    {
-        switch (static_cast<Mul_Div_Inst>(d->funct3()))
-        {
-            case Mul_Div_Inst::MUL:
-                mul(d);
-                break;
-            case Mul_Div_Inst::MULH:
-                mulh(d);
-                break;
-            case Mul_Div_Inst::MULHU:
-                mulhu(d);
-                break;
-            case Mul_Div_Inst::MULHSU:
-                mulhsu(d);
-                break;
-            case Mul_Div_Inst::DIV:
-                div(d);
-                break;
-            case Mul_Div_Inst::REM:
-                rem(d);
-                break;
-            case Mul_Div_Inst::DIVU:
-                divu(d);
-                break;
-            case Mul_Div_Inst::REMU:
-                remu(d);
-                break;
-            default:
-                error_dump("プログラムのバグです(mul_div)");
-        }
-    }
-
     void alu(Decoder *d)
     {
-        // mul/div
-        if (d->funct7() == 1) 
-        {
-            mul_div(d);
-            return;
-        }
-
         switch (static_cast<ALU_Inst>(d->funct3()))
         {
         case ALU_Inst::ADD_SUB:
