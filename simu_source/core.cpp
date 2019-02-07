@@ -736,8 +736,9 @@ class Core
 
     void fadd(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
         uint32_t x = r->get_freg_raw(d->rs1());
         uint32_t y = r->get_freg_raw(d->rs2());
@@ -751,8 +752,9 @@ class Core
     }
     void fsub(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
         uint32_t x = r->get_freg_raw(d->rs1());
         uint32_t y = r->get_freg_raw(d->rs2());
@@ -766,8 +768,9 @@ class Core
     }
     void fmul(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
         uint32_t x = r->get_freg_raw(d->rs1());
         uint32_t y = r->get_freg_raw(d->rs2());
@@ -781,8 +784,9 @@ class Core
     }
     void fdiv(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
         uint32_t x = r->get_freg_raw(d->rs1());
         uint32_t y = r->get_freg_raw(d->rs2());
@@ -796,11 +800,13 @@ class Core
     }
     void fsqrt(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
-        if(d->rs2() != 0){
-          error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
+        if (d->rs2() != 0)
+        {
+            error_dump("命令フォーマットがおかしいです(fsqrtではrs2()は0になる)\n");
         }
         uint32_t x = r->get_freg_raw(d->rs1());
         r->set_freg_raw(d->rd(), FPU::fsqrt(x));
@@ -838,11 +844,13 @@ class Core
 
     void fcvt_w_s(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
-        if(d->rs2() != 0){
-          error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
+        if (d->rs2() != 0)
+        {
+            error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
         }
         float x = r->get_freg(d->rs1());
         r->set_ireg(d->rd(), FPU::float2int(x));
@@ -854,11 +862,13 @@ class Core
     }
     void fcvt_s_w(Decoder *d)
     {
-        if(d->rm() != 0){
-          error_dump("丸め型がおかしいです\n");
+        if (d->rm() != 0)
+        {
+            error_dump("丸め型がおかしいです\n");
         }
-        if(d->rs2() != 0){
-          error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
+        if (d->rs2() != 0)
+        {
+            error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
         }
         uint32_t x = r->get_ireg(d->rs1());
         r->set_freg(d->rd(), FPU::int2float(x));
@@ -873,7 +883,7 @@ class Core
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
-        r->set_ireg(d->rd(),FPU::feq(x,y));
+        r->set_ireg(d->rd(), FPU::feq(x, y));
         (stat->feq.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "feq";
@@ -885,7 +895,7 @@ class Core
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
-        r->set_ireg(d->rd(),FPU::flt(x,y));
+        r->set_ireg(d->rd(), FPU::flt(x, y));
         (stat->flt.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "flt";
@@ -897,7 +907,7 @@ class Core
     {
         float x = r->get_freg(d->rs1());
         float y = r->get_freg(d->rs2());
-        r->set_ireg(d->rd(),FPU::fle(x,y));
+        r->set_ireg(d->rd(), FPU::fle(x, y));
         (stat->fle.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "fle";
@@ -1113,33 +1123,47 @@ class Core
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
-            if (settings->show_inst_value) {
+            if (inst_count < settings->wait)
+            {
+                inst_count++;
+                continue;
+            }
+            if (settings->show_inst_value)
+            {
                 printf("inst_count: %llx\n", inst_count++);
-                printf("ip: %x\n", ip);
+                printf("ip: %x\n", ip / 4);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
             }
-            if (settings->show_registers) {
+            if (settings->show_registers)
+            {
                 r->info();
             }
-            if (settings->show_stack) {
+            if (settings->show_stack)
+            {
                 show_stack_from_top();
             }
-            if (settings->show_io) {
+            if (settings->show_io)
+            {
                 io->show_status();
             }
-            if (settings->step_execution) {
+            if (settings->step_execution)
+            {
                 std::string s;
                 std::getline(std::cin, s);
-                if(settings->break_point && s == "c"){
+                if (settings->break_point && s == "c")
+                {
                     settings->step_execution = false;
                 }
             }
-            if (settings->break_point) {
-                if(ip == settings->ip){
+            if (settings->break_point)
+            {
+                if (ip == settings->ip)
+                {
                     std::string s;
                     std::getline(std::cin, s);
-                    if(s != "c"){
+                    if (s != "c")
+                    {
                         settings->step_execution = true;
                     }
                 }
@@ -1147,4 +1171,3 @@ class Core
         }
     }
 };
-

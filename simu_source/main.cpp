@@ -25,12 +25,13 @@ int main(int argc, const char **argv)
         std::cout << "Usage: " << argv[0] << " program file" << std::endl;
         return 0;
     }
-    Settings s = Settings(argc == 2 ? "" : argv[2], argc  == 3 ? 0 : atoi(argv[3]));
+    Settings s = Settings(argc == 2 ? "" : argv[2], argc <= 3 ? 0 : atoi(argv[3]), argc <= 4 ? 0 : strtol(argv[4], NULL, 16));
     Core core((std::string(argv[1])), &s);
-    try {
+    try
+    {
         core.main_loop();
-    } 
-    catch (int e) 
+    }
+    catch (int e)
     {
         core.info();
         return -1;
