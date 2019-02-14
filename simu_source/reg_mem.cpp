@@ -10,7 +10,7 @@ class Memory
     0xf4240 --------
     */
     static const uint32_t memory_size = 0xf4240;
-    static const uint32_t inst_mem_lim = 0xffff;
+    static const uint32_t inst_mem_lim = 0x1ffff;
     static const uint32_t IO_mem_lim = 0x20fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
