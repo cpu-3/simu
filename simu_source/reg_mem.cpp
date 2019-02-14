@@ -3,21 +3,21 @@ class Memory
     /* Current Memory Map
     0x0     --------
               Inst
-    0xffff  --------
+    0x1ffff  --------
               IO
-    0x10fff --------
+    0x20fff --------
               Data
     0xf4240 --------
     */
     static const uint32_t memory_size = 0xf4240;
     static const uint32_t inst_mem_lim = 0xffff;
-    static const uint32_t IO_mem_lim = 0x10fff;
+    static const uint32_t IO_mem_lim = 0x20fff;
     static const uint32_t memory_base = 0;
     static const uint32_t memory_lim = memory_base + memory_size;
 
-    static const uint32_t uart_rx_addr = 0x10000;
-    static const uint32_t uart_tx_addr = 0x10004;
-    static const uint32_t led_addr = 0x10008;
+    static const uint32_t uart_rx_addr = 0x20000;
+    static const uint32_t uart_tx_addr = 0x20004;
+    static const uint32_t led_addr = 0x20008;
 
     uint8_t memory[memory_size];
     IO *io;
