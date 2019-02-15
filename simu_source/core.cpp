@@ -1307,6 +1307,7 @@ class Core
             if (settings->step_execution)
             {
                 std::string s;
+                std::cout << "enter s(next step), c(continue) > ";
                 std::getline(std::cin, s);
                 if (settings->break_point && s == "c")
                 {
@@ -1317,6 +1318,7 @@ class Core
             {
                 if (ip == settings->ip)
                 {
+                    std::cout << "enter s(next step), c(continue) > ";
                     std::string s;
                     std::getline(std::cin, s);
                     if (s != "c")
