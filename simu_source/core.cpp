@@ -1280,7 +1280,7 @@ class Core
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
-            if (inst_count < settings->wait)
+            if (!settings->step_execution && (ip != settings->ip || inst_count < settings->wait))
             {
                 inst_count++;
                 continue;

@@ -1,3 +1,19 @@
+std::string input;
+bool input_flag;
+int input_index = 0;
+
+char hook_getchar()
+{
+    if (input_flag)
+    {
+        return input.at(input_index++);
+    }
+    else
+    {
+        return getchar();
+    }
+}
+
 class Settings
 {
   public:
@@ -11,7 +27,10 @@ class Settings
     int ip;
     unsigned long long wait;
 
-    Settings(const char *cmd_arg, const int x, unsigned long long y)
+    std::string input_data;
+    bool input_data_flag;
+
+    Settings(const char *cmd_arg, const int x, unsigned long long y, std::string filename)
     {
         break_point = false;
         step_execution = false;
@@ -22,6 +41,22 @@ class Settings
         hide_error_dump = false;
         ip = x;
         wait = y;
+
+        if (filename != std::string(""))
+        {
+            std::ifstream ifs(filename);
+
+            std::stringstream strstream;
+            strstream << ifs.rdbuf();
+            ifs.close();
+            std::string data(strstream.str());
+            input = data;
+            input_flag = true;
+        }
+        else
+        {
+            input_flag = false;
+        }
 
         for (const char *c = &cmd_arg[0]; *c; c++)
         {
