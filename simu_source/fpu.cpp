@@ -31,6 +31,7 @@ void char_uint_cpy(uint32_t *c, char *x, int bit_size)
         i++;
     }
 }
+/*
 uint32_t map(uint32_t mh)
 {
     switch (mh)
@@ -103,6 +104,7 @@ uint32_t map(uint32_t mh)
         return 0b0;
     }
 }
+*/
 
 class FPU
 {
@@ -113,227 +115,340 @@ class FPU
         uint32_t s2 = bit_range(x2, 32, 32); //1bit
         uint32_t e1 = bit_range(x1, 31, 24); //8bit
         uint32_t e2 = bit_range(x2, 31, 24); //8bit
-        uint32_t m1 = bit_range(x1, 23, 1);  //23bit
-        uint32_t m2 = bit_range(x2, 23, 1);  //23bit
+        uint32_t m1 = bit_range(x1, 23, 1); //23bit
+        uint32_t m2 = bit_range(x2, 23, 1); //23bit
+        
+        uint32_t em1 = bit_range(x1, 31, 1);
+        uint32_t em2 = bit_range(x2, 31, 1);
 
-        uint32_t m1a, m2a; //25bit
-        uint32_t e1a, e2a; //8bit
-        if (e1 == 0)
-        {
-            m1a = m1;
-            e1a = 1;
-        }
-        else
-        {
-            m1a = (1 << 23) + m1;
-            e1a = e1;
-        }
-        if (e2 == 0)
-        {
-            m2a = m2;
-            e2a = 1;
-        }
-        else
-        {
-            m2a = (1 << 23) + m2;
-            e2a = e2;
-        }
+        uint32_t b = (em1 > em2);
 
-        uint32_t te = e1a + bit_reverse(e2a, 8);               //9bit
-        uint32_t ce = bit_range(~(bit_range(te, 9, 9)), 1, 1); //1bit
-        uint32_t tei = 1 + te;                                 //9bit
-        uint32_t tde;                                          //8bit
-        uint32_t de;                                           //5bit
-        uint32_t sel;                                          //1bit
-        if (ce)
-        {
-            tde = bit_reverse(bit_range(te, 8, 1), 8);
-        }
-        else
-        {
-            tde = bit_range(tei, 8, 1);
-        }
-        if (bit_range(tde, 8, 6) != 0)
-        {
-            de = 31;
-        }
-        else
-        {
-            de = bit_range(tde, 5, 1);
-        }
-        if (de == 0)
-        {
-            sel = (m1a <= m2a);
-        }
-        else
-        {
-            sel = ce;
-        }
-
-        uint32_t ms, mi; //25bit
         uint32_t es, ei; //8bit
-        uint32_t ss;     //1bit
-        if (sel)
-        {
-            ms = m2a;
-            mi = m1a;
-            es = e2a;
-            ei = e1a;
-            ss = s2;
+        uint32_t ms, mi; //23bit
+        if(b){
+            es = e1;
+            ei = e2;
+            ms = m1;
+            mi = m2;
+        }else{
+            es = e2;
+            ei = e1;
+            ms = m2;
+            mi = m1;
         }
+
+        uint32_t ediff = es - ei; //8bit
+        uint32_t shift = bit_range(ediff, 5, 1); //5bit
+     
+        uint32_t mia = ((1 << 25) + (mi << 2)) >> shift; //27bit
+
+        uint32_t ssr = b ? s1 : s2; //1bit
+        uint32_t sub = s1 ^ s2; //8bit
+        uint32_t inonzero = (ei != 0) & (bit_range(ediff, 8, 6) == 0); //1bit
+
+        //esr = es;
+        //msr = ms;
+        //mir = mia;
+
+        uint32_t calc; //27bit
+        if(sub){
+            calc = (1 << 25) + (ms << 2) - mia;
+        }
+        else{
+            calc = (1 << 25) + (ms << 2) + mia;
+        }
+
+        uint32_t ketaoti; //5bit
+        if((calc >> 26) != 0){
+             ketaoti = 0b00000;
+        }
+        else if((calc >> 25) != 0){
+             ketaoti = 0b00001;
+        }
+        else if((calc >> 24) != 0){
+             ketaoti = 0b00010;
+        }
+        else if((calc >> 23) != 0){
+             ketaoti = 0b00011;
+        }
+        else if((calc >> 22) != 0){
+             ketaoti = 0b00100;
+        }
+        else if((calc >> 21) != 0){
+             ketaoti = 0b00101;
+        }
+        else if((calc >> 20) != 0){
+             ketaoti = 0b00110;
+        }
+        else if((calc >> 19) != 0){
+             ketaoti = 0b00111;
+        }
+        else if((calc >> 18) != 0){
+             ketaoti = 0b01000;
+        }
+        else if((calc >> 17) != 0){
+             ketaoti = 0b01001;
+        }
+        else if((calc >> 16) != 0){
+             ketaoti = 0b01010;
+        }
+        else if((calc >> 15) != 0){
+             ketaoti = 0b01011;
+        }
+        else if((calc >> 14) != 0){
+             ketaoti = 0b01100;
+        }
+        else if((calc >> 13) != 0){
+             ketaoti = 0b01101;
+        }
+        else if((calc >> 12) != 0){
+             ketaoti = 0b01110;
+        }
+        else if((calc >> 11) != 0){
+             ketaoti = 0b01111;
+        }
+        else if((calc >> 10) != 0){
+             ketaoti = 0b10000;
+        }
+        else if((calc >> 9) != 0){
+             ketaoti = 0b10001;
+        }
+        else if((calc >> 8) != 0){
+             ketaoti = 0b10010;
+        }
+        else if((calc >> 7) != 0){
+             ketaoti = 0b10011;
+        }
+        else if((calc >> 6) != 0){
+             ketaoti = 0b10100;
+        }
+        else if((calc >> 5) != 0){
+             ketaoti = 0b10101;
+        }
+        else if((calc >> 4) != 0){
+             ketaoti = 0b10110;
+        }
+        else if((calc >> 3) != 0){
+             ketaoti = 0b10111;
+        }
+        else if((calc >> 2) != 0){
+             ketaoti = 0b11000;
+        }
+        else if((calc >> 1) != 0){
+             ketaoti = 0b11001;
+        }
+        else if((calc >> 0) != 0){
+             ketaoti = 0b11010;
+        }
+        else{
+             ketaoti = 0b11111;
+        }
+
+        uint32_t nonzero = (calc != 0); //1bit
+
+        uint32_t my = calc << ketaoti;
+
+        uint32_t ey = es - ketaoti + 1; //9bit
+        if(bit_range(my, 26, 3) == 0b111111111111111111111111)
+            ey++;
+
+        uint32_t eya; //8bit
+        if(bit_range(ey, 9, 9))
+            eya = 0;
         else
-        {
-            ms = m1a;
-            mi = m2a;
-            es = e1a;
-            ei = e2a;
-            ss = s1;
-        }
-
-        uint64_t mie = (uint64_t)mi << 31; //56bit
-        uint64_t mia = mie >> de;          //56bit
-
-        uint32_t tstck = bit_range(mia, 29, 1) != 0; //1bit
-
-        uint32_t mye; //27bit
-        if (s1 == s2)
-        {
-            mye = bit_range((ms << 2) + (uint32_t)bit_range64(mia, 56, 30), 27, 1);
-        }
-        else
-        {
-            mye = bit_range((ms << 2) - (uint32_t)bit_range64(mia, 56, 30), 27, 1);
-        }
-
-        uint32_t esi = bit_range(es + 1, 8, 1);                   //8bit
-        uint32_t ovf1 = (bit_range(mye, 27, 27)) && (esi == 255); //1bit
-
-        uint32_t eyd;  //8bit
-        uint32_t myd;  //27bit
-        uint32_t stck; //1bit
-        if (bit_range(mye, 27, 27))
-        {
-            esi == 255 ? eyd = 255 : eyd = esi;
-            esi == 255 ? myd = 1 << 25 : myd = mye >> 1;
-            stck = tstck | bit_range(mye, 1, 1);
-        }
-        else
-        {
-            eyd = es;
-            myd = mye;
-            stck = tstck;
-        }
-
-        uint32_t se = 26; //5bit
-        for (int i = 0; i < 26; i++)
-        {
-            if (bit_range(myd, 26 - i, 26 - i))
-            {
-                se = i;
-                break;
-            }
-        }
-
-        int32_t eyf = (int32_t)eyd - (int32_t)se; //9bit
-        uint32_t eyr;                             //8bit
-        uint32_t myf;                             //27bit
-        if (eyf > 0)
-        {
-            eyr = bit_range(eyf, 8, 1);
-            myf = bit_range(myd << se, 27, 1);
-        }
-        else
-        {
-            eyr = 0;
-            myf = bit_range(myd << (bit_range(eyd, 5, 1) - 1), 27, 1);
-        }
-
-        uint32_t myr; //27bit
-        if ((bit_range(myf, 3, 1) == 0b110 && stck == 0) ||
-            (bit_range(myf, 2, 1) == 0b10 && s1 == s2 && stck == 1) ||
-            (bit_range(myf, 2, 1) == 0b11))
-        {
-            myr = bit_range(myf, 27, 3) + 1;
-        }
-        else
-        {
-            myr = bit_range(myf, 27, 3);
-        }
-
-        uint32_t eyri = bit_range(eyr + 1, 8, 1); //8bit
-        uint32_t ey;                              //8bit
-        uint32_t my;                              //23bit
-        uint32_t ovf2;                            //1bit
-        if (bit_range(myr, 25, 25))
-        {
-            ey = eyri;
-            my = 0;
-        }
-        else if (bit_range(myr, 24, 1) != 0)
-        {
-            ey = eyr;
-            my = bit_range(myr, 23, 1);
-        }
-        else
-        {
-            ey = 0;
-            my = 0;
-        }
-
-        if (e1 != 255 && e2 != 255 && bit_range(myr, 25, 25) && eyri == 255)
-        {
-            ovf2 = 1;
-        }
-        else
-        {
-            ovf2 = 0;
-        }
-
-        uint32_t sy; //1bit
-        (ey == 0 && my == 0) ? sy = (s1 & s2) : sy = ss;
-
-        uint32_t nzm1 = m1 != 0; //1bit
-        uint32_t nzm2 = m2 != 0; //1bit
+            eya = bit_range(ey, 8, 1);
 
         uint32_t y;
-        if (e1 == 255 && e2 != 255)
-        {
-            y = (s1 << 31) + (255 << 23) + (nzm1 << 22) + bit_range(m1, 22, 1);
-        }
-        else if (e2 == 255 && e1 != 255)
-        {
-            y = (s2 << 31) + (255 << 23) + (nzm2 << 22) + bit_range(m2, 22, 1);
-        }
-        else if (e1 == 255 && e2 == 255 && nzm2)
-        {
-            y = (s2 << 31) + (255 << 23) + (1 << 22) + bit_range(m2, 22, 1);
-        }
-        else if (e1 == 255 && e2 == 255 && nzm1)
-        {
-            y = (s1 << 31) + (255 << 23) + (1 << 22) + bit_range(m1, 22, 1);
-        }
-        else if (e1 == 255 && e2 == 255 && s1 == s2)
-        {
-            y = (s1 << 31) + (255 << 23);
-        }
-        else if (e1 == 255 && e2 == 255)
-        {
-            y = (1 << 31) + (255 << 23) + (1 << 22);
-        }
-        else
-        {
-            y = (sy << 31) + (ey << 23) + bit_range(my, 23, 1);
-        }
-        uint32_t ovf = ovf1 | ovf2;
 
+        if(inonzero){
+            if(nonzero){
+                y = (ssr << 31) + (eya << 23) + bit_range(my, 26, 4) + bit_range(my, 3, 3);
+            }
+            else{
+                y = (ssr << 31);
+            }
+        }
+        else{
+            y = (ssr << 31) + (es << 23) + ms;
+        }
+                
         return y;
+
     }
 
     static uint32_t fsub(uint32_t x1, uint32_t x2)
     {
-        uint32_t s2 = bit_range(~x2, 32, 32); //1bit
-        uint32_t x2s = (s2 << 31) + bit_range(x2, 31, 1);
-        return (fadd(x1, x2s));
+        uint32_t s1 = bit_range(x1, 32, 32); //1bit
+        uint32_t s2 = bit_range(x2, 32, 32); //1bit
+        uint32_t e1 = bit_range(x1, 31, 24); //8bit
+        uint32_t e2 = bit_range(x2, 31, 24); //8bit
+        uint32_t m1 = bit_range(x1, 23, 1); //23bit
+        uint32_t m2 = bit_range(x2, 23, 1); //23bit
+        
+        s2 = bit_reverse(s2, 1);
+
+        uint32_t em1 = bit_range(x1, 31, 1);
+        uint32_t em2 = bit_range(x2, 31, 1);
+
+        uint32_t b = (em1 > em2);
+
+        uint32_t es, ei; //8bit
+        uint32_t ms, mi; //23bit
+        if(b){
+            es = e1;
+            ei = e2;
+            ms = m1;
+            mi = m2;
+        }else{
+            es = e2;
+            ei = e1;
+            ms = m2;
+            mi = m1;
+        }
+
+        uint32_t ediff = es - ei; //8bit
+        uint32_t shift; //5bit
+        if(bit_range(ediff, 8, 6) != 0)
+            shift = 31;
+        else
+            shift = bit_range(ediff, 5, 1);
+     
+        uint32_t mia = ((1 << 25) + (mi << 2)) >> shift; //27bit
+
+        uint32_t ssr = b ? s1 : s2; //1bit
+        //esr = es;
+        uint32_t msr; //25bit
+        if(es != 0)
+            msr = (1 << 23) + ms;
+        else
+            msr = ms;
+
+        uint32_t mir; //27bit
+        if(s1 == s2)
+            mir = mia;
+        else
+            mir = bit_reverse(mia, 27) + 1;
+
+        uint32_t inonzero = (ei != 0); //1bit
+
+        uint32_t calc = bit_range((msr << 2) + mir, 27, 1); //27bit
+
+        uint32_t ketaoti; //5bit
+        if((calc >> 26) != 0){
+             ketaoti = 0b00000;
+        }
+        else if((calc >> 25) != 0){
+             ketaoti = 0b00001;
+        }
+        else if((calc >> 24) != 0){
+             ketaoti = 0b00010;
+        }
+        else if((calc >> 23) != 0){
+             ketaoti = 0b00011;
+        }
+        else if((calc >> 22) != 0){
+             ketaoti = 0b00100;
+        }
+        else if((calc >> 21) != 0){
+             ketaoti = 0b00101;
+        }
+        else if((calc >> 20) != 0){
+             ketaoti = 0b00110;
+        }
+        else if((calc >> 19) != 0){
+             ketaoti = 0b00111;
+        }
+        else if((calc >> 18) != 0){
+             ketaoti = 0b01000;
+        }
+        else if((calc >> 17) != 0){
+             ketaoti = 0b01001;
+        }
+        else if((calc >> 16) != 0){
+             ketaoti = 0b01010;
+        }
+        else if((calc >> 15) != 0){
+             ketaoti = 0b01011;
+        }
+        else if((calc >> 14) != 0){
+             ketaoti = 0b01100;
+        }
+        else if((calc >> 13) != 0){
+             ketaoti = 0b01101;
+        }
+        else if((calc >> 12) != 0){
+             ketaoti = 0b01110;
+        }
+        else if((calc >> 11) != 0){
+             ketaoti = 0b01111;
+        }
+        else if((calc >> 10) != 0){
+             ketaoti = 0b10000;
+        }
+        else if((calc >> 9) != 0){
+             ketaoti = 0b10001;
+        }
+        else if((calc >> 8) != 0){
+             ketaoti = 0b10010;
+        }
+        else if((calc >> 7) != 0){
+             ketaoti = 0b10011;
+        }
+        else if((calc >> 6) != 0){
+             ketaoti = 0b10100;
+        }
+        else if((calc >> 5) != 0){
+             ketaoti = 0b10101;
+        }
+        else if((calc >> 4) != 0){
+             ketaoti = 0b10110;
+        }
+        else if((calc >> 3) != 0){
+             ketaoti = 0b10111;
+        }
+        else if((calc >> 2) != 0){
+             ketaoti = 0b11000;
+        }
+        else if((calc >> 1) != 0){
+             ketaoti = 0b11001;
+        }
+        else if((calc >> 0) != 0){
+             ketaoti = 0b11010;
+        }
+        else{
+             ketaoti = 0b11111;
+        }
+
+        uint32_t zero = (ketaoti == 0b11111); //1bit
+
+        uint32_t my = calc << ketaoti; //27bit
+
+        uint32_t ey = es - ketaoti + 1; //9bit
+        if(bit_range(my, 26, 3) == 0b111111111111111111111111)
+            ey++;
+
+        uint32_t eya; //8bit
+        if(bit_range(ey, 9, 9))
+            eya = 0;
+        else
+            eya = bit_range(ey, 8, 1);
+
+        uint32_t y;
+
+        if(inonzero){
+            if(zero){
+                y = (ssr << 31);
+            }
+            else{
+                y = (ssr << 31) + (eya << 23) + bit_range(my, 26, 4) + bit_range(my, 3, 3);
+            }
+        }
+        else{
+            y = (ssr << 31) + (es << 23) + bit_range(msr, 23, 1);
+        }
+                
+        return y;
+
     }
 
     static uint32_t fmul(uint32_t x1, uint32_t x2)
@@ -415,43 +530,27 @@ class FPU
 
     static uint32_t finv(uint32_t x)
     {
-        using namespace std;
         uint32_t s = bit_range(x, 32, 32); //1bit
         uint32_t e = bit_range(x, 31, 24); //8bit
-        uint32_t m = bit_range(x, 23, 1);  //23bit
+        uint32_t index = bit_range(x, 23, 14); //10bit
+        uint32_t a = bit_range(x, 13, 1); //13bit
 
-        uint32_t ma = (1 << 23) + m;               //24bit
-        uint32_t init = map(bit_range(m, 23, 19)); //8bit
-
-        uint64_t calc1 = ((uint64_t)init << 31) - (uint64_t)init * (uint64_t)init * (uint64_t)ma; //39bit
-
-        uint32_t x1 = bit_range64(calc1, 38, 27) + bit_range64(calc1, 26, 26); //12bit
-
-        uint64_t calc2 = ((uint64_t)x1 << 35) - (uint64_t)x1 * (uint64_t)x1 * (uint64_t)ma; //47bit
+        uint32_t c = fpu_inv_c[index]; //23bit
+        uint32_t g = fpu_inv_g[index]; //13bit
 
         uint32_t ey; //8bit
-        if (bit_range64(calc2, 46, 46))
-        {
-            ey = bit_reverse(e, 8) - 1;
-        }
-        else
-        {
-            ey = bit_reverse(e, 8) - 2;
+        if(index != 0 || a != 0){
+            ey = bit_reverse(e+2,8);
+        }else{
+            ey = bit_reverse(e+1,8);
         }
 
-        uint32_t my; //23bit
-        if (bit_range64(calc2, 46, 46))
-        {
-            my = bit_range64(calc2, 45, 23) + bit_range64(calc2, 22, 22);
-        }
-        else
-        {
-            my = bit_range64(calc2, 44, 22) + bit_range64(calc2, 21, 21);
-        }
-
-        uint32_t y = (s << 31) + (ey << 23) + my;
+        uint64_t calc = (1UL << 35) + ((uint64_t)c << 12) - (uint64_t)(g*a); //36bit
+        
+        uint32_t y = (s << 31) + (ey << 23) + bit_range64(calc,35,13);
 
         return y;
+
     }
 
     static uint32_t fdiv(uint32_t x1, uint32_t x2)
@@ -461,7 +560,7 @@ class FPU
 
     static uint32_t fsqrt(uint32_t x)
     {
-        using namespace std;
+        //TODO fsqrt -> fsqrt2
         uint32_t s = bit_range(x, 32, 32);                     //1bit
         uint32_t e = bit_range(x, 31, 25);                     //7bit
         uint32_t index = bit_range(x, 24, 15);                 //10bit
