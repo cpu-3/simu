@@ -20,7 +20,6 @@ class IO
 
     uint8_t receive_uart()
     {
-        return getchar();
+        return hook_getchar();
     }
 };
-
