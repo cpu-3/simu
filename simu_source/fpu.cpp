@@ -152,10 +152,10 @@ class FPU
 
         uint32_t calc; //27bit
         if(sub){
-            calc = (1 << 25) + (ms << 2) - mia;
+            calc = bit_range((1 << 25) + (ms << 2) - mia, 27, 1);
         }
         else{
-            calc = (1 << 25) + (ms << 2) + mia;
+            calc = bit_range((1 << 25) + (ms << 2) + mia, 27, 1);
         }
 
         uint32_t ketaoti; //5bit
@@ -457,75 +457,39 @@ class FPU
         uint32_t s2 = bit_range(x2, 32, 32); //1bit
         uint32_t e1 = bit_range(x1, 31, 24); //8bit
         uint32_t e2 = bit_range(x2, 31, 24); //8bit
-        uint32_t m1 = bit_range(x1, 23, 1);  //23bit
-        uint32_t m2 = bit_range(x2, 23, 1);  //23bit
+        uint32_t m1 = bit_range(x1, 23, 1); //23bit
+        uint32_t m2 = bit_range(x2, 23, 1); //23bit
 
-        uint32_t sy = bit_range(s1 ^ s2, 1, 1); //1bit
+        uint64_t calc; //48bit
+        calc = (uint64_t)((1 << 23) + m1) * (uint64_t)((1 << 23) + m2);
 
-        uint32_t m1a = (1 << 23) + m1; //24bit
-        uint32_t m2a = (1 << 23) + m2; //24bit
+        uint32_t sy = s1 ^ s2; //1bit
+        uint32_t esum = bit_range(e1 + e2 - 0b1111111, 9, 1); //9bit
+        uint32_t calcr = bit_range64(calc, 48, 23); //26bit
+        uint32_t nz = ((e1 != 0) & (e2 != 0)); //1bit
 
-        uint64_t mmul;  //48bit
-        uint64_t mketa; //47bit
-        uint32_t my;    //23bit
-        mmul = (uint64_t)m1a * (uint64_t)m2a;
+        uint32_t mketa; //24bit
+        uint32_t my; //23bit
 
-        if (bit_range64(mmul, 48, 48))
-        {
-            mketa = bit_range64(mmul, 47, 1);
-        }
+        if(bit_range(calcr, 26, 26))
+            mketa = bit_range(calcr, 25, 2);
         else
-        {
-            mketa = bit_range64(mmul, 46, 1) << 1;
-        }
+            mketa = bit_range(calcr, 24, 1);
 
-        if ((bit_range(mketa, 23, 1) == 0) && bit_range(mketa, 24, 24))
-        {
-            my = bit_range64(mketa, 47, 25) + bit_range(mketa, 25, 25);
-        }
-        else
-        {
-            my = bit_range64(mketa, 47, 25) + bit_range(mketa, 24, 24);
-        }
+        my = bit_range(bit_range(mketa, 24, 2) + bit_range(mketa, 1, 1), 23, 1);
 
-        uint32_t eadd; //9bit
-        uint32_t eexp; //9bit
-        uint32_t ey;   //8bit
-        if (bit_range64(mketa, 47, 24) == 0xFFFFFF)
-        {
-            eadd = bit_range(e1 + e2 + bit_range64(mmul, 48, 48) + 1, 9, 1);
-        }
-        else
-        {
-            eadd = bit_range(e1 + e2 + bit_range64(mmul, 48, 48), 9, 1);
-        }
-        if (bit_range(eadd, 9, 9) & bit_range(eadd, 8, 8))
-        {
-            eexp = 0b111111111;
-        }
-        else if (bit_range(eadd, 9, 9) | bit_range(eadd, 8, 8))
-        {
-            eexp = eadd - 0b001111111;
-        }
-        else
-        {
-            eexp = 0;
-        }
-        ey = bit_range(eexp, 8, 1);
-
-        uint32_t ovf = bit_range(eadd, 8, 8) & bit_range(eadd, 7, 7);
+        uint32_t ey = esum;
+        if((bit_range(calcr, 26, 26) != 0) | (bit_range(calcr, 24, 1)  == 0b111111111111111111111111))
+            ey++;
 
         uint32_t y;
-        if (e1 != 0 && e2 != 0 && ey != 0)
-        {
-            y = (sy << 31) + (ey << 23) + bit_range(my, 23, 1);
-        }
+        if(nz)
+            y = (sy << 31) + (bit_range(ey, 8, 1) << 23) + my;
         else
-        {
-            y = sy << 31;
-        }
+            y = (sy << 31);
 
         return y;
+
     }
 
     static uint32_t finv(uint32_t x)

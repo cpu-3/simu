@@ -78,10 +78,10 @@ static uint32_t fadd(uint32_t x1, uint32_t x2)
 
     uint32_t calc; //27bit
     if(sub){
-        calc = (1 << 25) + (ms << 2) - mia;
+        calc = bit_range((1 << 25) + (ms << 2) - mia, 27, 1);
     }
     else{
-        calc = (1 << 25) + (ms << 2) + mia;
+        calc = bit_range((1 << 25) + (ms << 2) + mia, 27, 1);
     }
 
     uint32_t ketaoti; //5bit
@@ -209,7 +209,7 @@ int main(){
     float_int seikai;
     srand((unsigned) time(NULL));
     
-    for(int j = 0; j < 10; j++){
+    for(int j = 0; j < 1000; j++){
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         data2.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         result.i = fadd(data1.i, data2.i);
