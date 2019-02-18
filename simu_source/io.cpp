@@ -1,3 +1,4 @@
+int cnt = 0;
 class IO
 {
     uint8_t led;
@@ -15,7 +16,11 @@ class IO
 
     void transmit_uart(uint8_t val)
     {
-        std::cout << val;
+        //std::cout << val;
+        if (val == 0xa)
+        {
+            std::cerr << ++cnt << std::endl;
+        }
     }
 
     uint8_t receive_uart()

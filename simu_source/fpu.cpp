@@ -117,7 +117,7 @@ class FPU
         uint32_t e2 = bit_range(x2, 31, 24); //8bit
         uint32_t m1 = bit_range(x1, 23, 1); //23bit
         uint32_t m2 = bit_range(x2, 23, 1); //23bit
-        
+
         uint32_t em1 = bit_range(x1, 31, 1);
         uint32_t em2 = bit_range(x2, 31, 1);
 
@@ -139,7 +139,7 @@ class FPU
 
         uint32_t ediff = es - ei; //8bit
         uint32_t shift = bit_range(ediff, 5, 1); //5bit
-     
+
         uint32_t mia = ((1 << 25) + (mi << 2)) >> shift; //27bit
 
         uint32_t ssr = b ? s1 : s2; //1bit
@@ -269,7 +269,8 @@ class FPU
         else{
             y = (ssr << 31) + (es << 23) + ms;
         }
-                
+
+        printf("fadd %x %x %x\n", x1, x2, y);
         return y;
 
     }
@@ -282,7 +283,7 @@ class FPU
         uint32_t e2 = bit_range(x2, 31, 24); //8bit
         uint32_t m1 = bit_range(x1, 23, 1); //23bit
         uint32_t m2 = bit_range(x2, 23, 1); //23bit
-        
+
         s2 = bit_reverse(s2, 1);
 
         uint32_t em1 = bit_range(x1, 31, 1);
@@ -310,7 +311,7 @@ class FPU
             shift = 31;
         else
             shift = bit_range(ediff, 5, 1);
-     
+
         uint32_t mia = ((1 << 25) + (mi << 2)) >> shift; //27bit
 
         uint32_t ssr = b ? s1 : s2; //1bit
@@ -442,7 +443,8 @@ class FPU
         else{
             y = (ssr << 31) + (es << 23) + bit_range(msr, 23, 1);
         }
-                
+
+        printf("fsub %x %x %x\n", x1, x2, y);
         return y;
 
     }
@@ -484,6 +486,7 @@ class FPU
         else
             y = (sy << 31);
 
+        printf("fmul %x %x %x\n", x1, x2, y);
         return y;
 
     }
@@ -506,7 +509,7 @@ class FPU
         }
 
         uint64_t calc = (1UL << 35) + ((uint64_t)c << 12) - (uint64_t)(g*a); //36bit
-        
+
         uint32_t y = (s << 31) + (ey << 23) + bit_range64(calc,35,13);
 
         return y;
@@ -515,7 +518,9 @@ class FPU
 
     static uint32_t fdiv(uint32_t x1, uint32_t x2)
     {
-        return fmul(x1, finv(x2));
+        uint32_t y = fmul(x1, finv(x2));
+        printf("fdiv %x %x %x\n", x1, x2, y);
+        return y;
     }
 
     static uint32_t fsqrt(uint32_t x)

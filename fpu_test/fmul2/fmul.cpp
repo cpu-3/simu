@@ -83,9 +83,9 @@ int main(){
     float_int result;
     float_int seikai;
     srand((unsigned) time(NULL));
-    
+
     std::ofstream ofs("result.txt");
-    
+
     for(int j = 0; j < 100000; j++){
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 1000.0;
         data2.f = ((float)rand() / (float)(RAND_MAX)) * 1000.0;

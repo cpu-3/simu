@@ -44,7 +44,7 @@ static uint32_t fsub(uint32_t x1, uint32_t x2)
     uint32_t e2 = bit_range(x2, 31, 24); //8bit
     uint32_t m1 = bit_range(x1, 23, 1); //23bit
     uint32_t m2 = bit_range(x2, 23, 1); //23bit
-    
+
     s2 = bit_reverse(s2, 1);
 
     uint32_t em1 = bit_range(x1, 31, 1);
@@ -72,7 +72,7 @@ static uint32_t fsub(uint32_t x1, uint32_t x2)
         shift = 31;
     else
         shift = bit_range(ediff, 5, 1);
- 
+
     uint32_t mia = ((1 << 25) + (mi << 2)) >> shift; //27bit
 
     uint32_t ssr = b ? s1 : s2; //1bit
@@ -204,45 +204,13 @@ static uint32_t fsub(uint32_t x1, uint32_t x2)
     else{
         y = (ssr << 31) + (es << 23) + bit_range(msr, 23, 1);
     }
-            
+
     return y;
 }
 
 int main(){
-    float_int data1;
-    float_int data2;
-
-    float_int result;
-    float_int seikai;
-    srand((unsigned) time(NULL));
-
-    std::ofstream ofs("result.txt");
-
-    for(int j = 0; j < 100000; j++){
-        data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
-        data2.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
-        result.i = fsub(data1.i, data2.i);
-        std::bitset<32> d1(data1.i);
-        std::bitset<32> d2(data2.i);
-        std::bitset<32> r(result.i);
-        ofs << d1 << " " << d2 << " " << r << std::endl;
-
-        
-        /*
-        seikai.f = data1.f - data2.f;
-        printf("data1:%f data2:%f\n", data1.f, data2.f);
-        printf("fadd結果:\t%f\n", result.f);
-        printf("理論値:\t%f\n", seikai.f);
-        if(fabs(result.f-seikai.f) > 0.01){
-            printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
-            printf("result:%f\nseikai:%f\n", result.f, seikai.f);
-            printb(result.i);
-            printf("\n");
-            printb(seikai.i);
-            printf("\n");
-        }
-*/
-    }
+    printf("%x\n", fsub(1065353216, 857438272));
+    printf("%x\n", fsub(1065353216, 859248704));
 
     return 0;
 }
