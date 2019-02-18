@@ -373,6 +373,8 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
+        if (addr == 0x212e4)
+            m->show_data(0x212e4, 4);
         uint32_t val = m->read_mem_4(addr);
         r->set_ireg(d->rd(), val);
         (stat->lw.stat)++;
@@ -1266,28 +1268,29 @@ class Core
         if (!settings->hide_error_dump)
         {
             r->info();
+            printf("inst_count: %llx\n", inst_count);
             show_stack_from_top();
             io->show_status();
             predict->result();
             stat->show_stats();
         }
     }
+    unsigned long long inst_count = 0; //pipe line
     void main_loop()
     {
-        unsigned long long inst_count = 0; //pipe line
         while (1)
         {
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
-            if (!settings->step_execution && (ip != settings->ip || inst_count < settings->wait))
+            inst_count++;
+            if (inst_count < settings->wait)
             {
-                inst_count++;
                 continue;
             }
             if (settings->show_inst_value)
             {
-                printf("inst_count: %llx\n", inst_count++);
+                printf("inst_count: %llx\n", inst_count);
                 printf("ip: %x\n", ip);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
