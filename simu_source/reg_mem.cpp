@@ -22,7 +22,6 @@ class Memory
     uint8_t memory[memory_size];
     IO *io;
 
-
     void addr_alignment_check(uint32_t addr)
     {
         if (addr % 4 != 0)
@@ -110,7 +109,8 @@ class Memory
     }
 
   public:
-    Memory(IO *io) {
+    Memory(IO *io)
+    {
         this->io = io;
     }
 
@@ -200,14 +200,21 @@ class Memory
     void show_data(uint32_t addr, uint32_t length)
     {
         int cnt = 0;
-        for (uint32_t ad = addr; ad < addr + length; ad += 4) {
-            if (ad + 4 >= memory_lim) {
+        for (uint32_t ad = addr; ad < addr + length; ad += 4)
+        {
+            if (ad + 4 >= memory_lim)
+            {
                 break;
             }
             uint32_t v = read_mem_4(ad);
             printf("%08x: %08x\n", ad, v);
         }
         std::cout << std::endl;
+    }
+
+    void dump_heap()
+    {
+        show_data(0x21000, 0x1000);
     }
 };
 
@@ -216,13 +223,15 @@ typedef union {
     float f;
 } float_int;
 
-int f2i(float x) {
+int f2i(float x)
+{
     float_int data;
     data.f = x;
     return data.i;
 }
 
-float i2f(int x) {
+float i2f(int x)
+{
     float_int data;
     data.i = x;
     return data.f;
@@ -241,7 +250,7 @@ class Register
         {
             error_dump("レジスタの番号が不正です: %d\n", name);
         }
-/*
+        /*
         if (write && name == 0)
         {
             warn_dump("レジスタ0に書き込もうとしていますが\n");
@@ -314,7 +323,8 @@ class Register
                 std::cout << std::endl;
             }
         }
-        std::cout << std::endl << std::endl;
+        std::cout << std::endl
+                  << std::endl;
         std::cout << "fRegister: " << std::endl;
         for (int i = 0; i < freg_size; i++)
         {
@@ -328,4 +338,3 @@ class Register
         std::cout << std::dec;
     }
 };
-
