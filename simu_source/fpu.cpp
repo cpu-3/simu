@@ -249,8 +249,6 @@ class FPU
         uint32_t my = calc << ketaoti;
 
         uint32_t ey = es - ketaoti + 1; //9bit
-        if(bit_range(my, 26, 3) == 0b111111111111111111111111)
-            ey++;
 
         uint32_t eya; //8bit
         if(bit_range(ey, 9, 9))
@@ -424,8 +422,6 @@ class FPU
         uint32_t my = calc << ketaoti; //27bit
 
         uint32_t ey = es - ketaoti + 1; //9bit
-        if(bit_range(my, 26, 3) == 0b111111111111111111111111)
-            ey++;
 
         uint32_t eya; //8bit
         if(bit_range(ey, 9, 9))

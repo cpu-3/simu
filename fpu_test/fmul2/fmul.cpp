@@ -84,17 +84,23 @@ int main(){
     float_int seikai;
     srand((unsigned) time(NULL));
     
-    for(int j = 0; j < 100; j++){
+    std::ofstream ofs("result.txt");
+    
+    for(int j = 0; j < 100000; j++){
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 1000.0;
         data2.f = ((float)rand() / (float)(RAND_MAX)) * 1000.0;
         result.i = fmul(data1.i, data2.i);
-        seikai.f = data1.f * data2.f;
+        std::bitset<32> d1(data1.i);
+        std::bitset<32> d2(data2.i);
+        std::bitset<32> r(result.i);
+        ofs << d1 << " " << d2 << " " << r << std::endl;
+
 /*
+        seikai.f = data1.f * data2.f;
         printf("data1:%f data2:%f\n", data1.f, data2.f);
         printf("fmul結果:\t%f\n", result.f);
         printf("理論値:\t%f\n", seikai.f);
-*/
-        if(result.f-seikai.f != 0){
+        if(fabs(result.f-seikai.f) > 0.1){
             printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
             printf("result:%f\nseikai:%f\n", result.f, seikai.f);
             printb(result.i);
@@ -102,6 +108,7 @@ int main(){
             printb(seikai.i);
             printf("\n");
         }
+*/
     }
 
     return 0;

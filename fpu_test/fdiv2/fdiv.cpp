@@ -104,53 +104,34 @@ static uint32_t fmul(uint32_t x1, uint32_t x2)
     uint32_t m1 = bit_range(x1, 23, 1); //23bit
     uint32_t m2 = bit_range(x2, 23, 1); //23bit
 
-    uint32_t sy = bit_range(s1^s2,1,1); //1bit
-    
-    uint32_t m1a = (1 << 23) + m1; //24bit
-    uint32_t m2a = (1 << 23) + m2; //24bit
+    uint64_t calc; //48bit
+    calc = (uint64_t)((1 << 23) + m1) * (uint64_t)((1 << 23) + m2);
 
-    uint64_t mmul; //48bit
-    uint64_t mketa; //47bit
+    uint32_t sy = s1 ^ s2; //1bit
+    uint32_t esum = bit_range(e1 + e2 - 0b1111111, 9, 1); //9bit
+    uint32_t calcr = bit_range64(calc, 48, 23); //26bit
+    uint32_t nz = ((e1 != 0) & (e2 != 0)); //1bit
+
+    uint32_t mketa; //24bit
     uint32_t my; //23bit
-    mmul = (uint64_t)m1a*(uint64_t)m2a;
 
-    if(bit_range64(mmul,48,48)){
-        mketa = bit_range64(mmul,47,1);
-    }else{
-        mketa = bit_range64(mmul,46,1) << 1;
-    }
- 
-    if((bit_range(mketa,23,1) == 0) && bit_range(mketa,24,24)){
-        my = bit_range64(mketa,47,25)+bit_range(mketa,25,25);
-    }else{
-        my = bit_range64(mketa,47,25)+bit_range(mketa,24,24);
-    }
+    if(bit_range(calcr, 26, 26))
+        mketa = bit_range(calcr, 25, 2);
+    else
+        mketa = bit_range(calcr, 24, 1);
 
-    uint32_t eadd; //9bit 
-    uint32_t eexp; //9bit 
-    uint32_t ey; //8bit 
-    if(bit_range64(mketa,47,24) == 0xFFFFFF){
-        eadd = bit_range(e1+e2+bit_range64(mmul,48,48)+1,9,1);
-    }else{
-        eadd = bit_range(e1+e2+bit_range64(mmul,48,48),9,1);
-    }
-    if(bit_range(eadd,9,9) & bit_range(eadd,8,8)){
-        eexp = 0b111111111;
-    }else if(bit_range(eadd,9,9) | bit_range(eadd,8,8)){
-        eexp = eadd - 0b001111111;
-    }else{
-        eexp = 0;
-    }
-    ey = bit_range(eexp,8,1);
+    my = bit_range(bit_range(mketa, 24, 2) + bit_range(mketa, 1, 1), 23, 1);
 
-    uint32_t ovf = bit_range(eadd,8,8) & bit_range(eadd,7,7);
+    uint32_t ey = esum;
+    if((bit_range(calcr, 26, 26) != 0) | (bit_range(calcr, 24, 1)  == 0b111111111111111111111111))
+        ey++;
 
     uint32_t y;
-    if(e1 != 0 || e2 != 0 || ey != 0){
-        y = (sy << 31) + (ey << 23) + bit_range(my,23,1);
-    }else{
-        y = sy << 31;
-    }
+    if(nz)
+        y = (sy << 31) + (bit_range(ey, 8, 1) << 23) + my;
+    else
+        y = (sy << 31);
+
     return y;
 }
 
@@ -165,38 +146,26 @@ int main(){
     float_int result;
     float_int seikai;
     srand((unsigned) time(NULL));
-    
-/*
-    float_int data;
-    for(int j = 0; j < 10; j++){
-        data.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
-        result.i = finv(data.i);
-        seikai.f = 1/data.f;
-        printf("data1:%f data2:%f\n", data1.f, data2.f);
-        printf("fdiv結果:\t%f\n", result.f);
-        printf("理論値:\t%f\n", seikai.f);
-        //誤差が生じた場合に出力
-        if(result.f-seikai.f != 0){
-            printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
-            printf("result:%f\nseikai:%f\n", result.f, seikai.f);
-            printb(result.i);
-            printf("\n");
-            printb(seikai.i);
-            printf("\n");
-        }
-    }
-*/
-    for(int j = 0; j < 1000; j++){
+
+    std::ofstream ofs("result.txt");
+
+    for(int j = 0; j < 100000; j++){
 
         data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         data2.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
         result.i = fdiv(data1.i, data2.i);
+        std::bitset<32> d1(data1.i);
+        std::bitset<32> d2(data2.i);
+        std::bitset<32> r(result.i);
+        ofs << d1 << " " << d2 << " " << r << std::endl;
+
+        /*
         seikai.f = data1.f / data2.f;
-        printf("data1:%f data2:%f\n", data1.f, data2.f);
-        printf("fdiv結果:\t%f\n", result.f);
-        printf("理論値:\t%f\n", seikai.f);
+        //printf("data1:%f data2:%f\n", data1.f, data2.f);
+        //printf("fdiv結果:\t%f\n", result.f);
+        //printf("理論値:\t%f\n", seikai.f);
         //誤差が生じた場合に出力
-        if(result.f-seikai.f != 0){
+        if(fabs(result.f-seikai.f) > 0.01){
             printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
             printf("result:%f\nseikai:%f\n", result.f, seikai.f);
             printb(result.i);
@@ -204,6 +173,7 @@ int main(){
             printb(seikai.i);
             printf("\n");
         }
+        */
     }
 
     return 0;

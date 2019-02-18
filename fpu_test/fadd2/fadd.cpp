@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 #include <climits>
+#include <bitset>
 
 typedef union {
     uint32_t i;
@@ -70,6 +71,7 @@ static uint32_t fadd(uint32_t x1, uint32_t x2)
 
     uint32_t ssr = b ? s1 : s2; //1bit
     uint32_t sub = s1 ^ s2; //8bit
+    
     uint32_t inonzero = (ei != 0) & (bit_range(ediff, 8, 6) == 0); //1bit
 
     //esr = es;
@@ -175,8 +177,6 @@ static uint32_t fadd(uint32_t x1, uint32_t x2)
     uint32_t my = calc << ketaoti;
 
     uint32_t ey = es - ketaoti + 1; //9bit
-    if(bit_range(my, 26, 3) == 0b111111111111111111111111)
-        ey++;
 
     uint32_t eya; //8bit
     if(bit_range(ey, 9, 9))
@@ -209,24 +209,36 @@ int main(){
     float_int seikai;
     srand((unsigned) time(NULL));
     
-    for(int j = 0; j < 1000; j++){
-        data1.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
-        data2.f = ((float)rand() / (float)(RAND_MAX)) * 100000.0;
+    std::ofstream ofs("result.txt");
+    
+    for(int j = 0; j < 100000; j++){
+        data1.f = ((float)rand() / (float)(RAND_MAX));
+        data2.f = ((float)rand() / (float)(RAND_MAX));
         result.i = fadd(data1.i, data2.i);
-        seikai.f = data1.f + data2.f;
+        std::bitset<32> d1(data1.i);
+        std::bitset<32> d2(data2.i);
+        std::bitset<32> r(result.i);
+        ofs << d1 << " " << d2 << " " << r << std::endl;
 /*
+        seikai.f = data1.f + data2.f;
         printf("data1:%f data2:%f\n", data1.f, data2.f);
         printf("fadd結果:\t%f\n", result.f);
         printf("理論値:\t%f\n", seikai.f);
-*/
-        if(result.f-seikai.f != 0){
+        if(fabs(result.f-seikai.f) > 0.0001){
             printf("残念！\ndata1:%f\ndata2:%f\n", data1.f, data2.f);
+            printf("data1 bin: ");
+            printb(data1.i);
+            printf("\n");
+            printf("data2 bin: ");
+            printb(data2.i);
+            printf("\n");
             printf("result:%f\nseikai:%f\n", result.f, seikai.f);
             printb(result.i);
             printf("\n");
             printb(seikai.i);
             printf("\n");
         }
+*/
     }
 
     return 0;
