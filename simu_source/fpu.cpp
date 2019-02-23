@@ -548,38 +548,30 @@ class FPU
         return y;
     }
 
-    static uint32_t feq(float x, float y)
+    static uint32_t feq(uint32_t x, uint32_t y)
     {
-        if (x == 0.0 && y == -0.0)
-            return 0;
-        else if (x == -0.0 && y == 0.0)
-            return 0;
-        else if (x == y)
-            return 1;
-        else
-            return 0;
+        return x == y ? 1 : 0;
     }
-    static uint32_t flt(float x, float y)
+    static uint32_t flt(uint32_t x1, uint32_t x2)
     {
-        if (x == 0.0 && y == -0.0)
-            return 0;
-        else if (x == -0.0 && y == 0.0)
-            return 1;
-        else if (x < y)
-            return 1;
-        else
-            return 0;
+        uint32_t s1 = bit_range(x1, 32, 32);
+        uint32_t s2 = bit_range(x2, 32, 32);
+        uint32_t e1 = bit_range(x1, 31, 24);
+        uint32_t e2 = bit_range(x2, 31, 24);
+        uint32_t m1 = bit_range(x1, 23, 1);
+        uint32_t m2 = bit_range(x2, 23, 1);
+
+        return (s1 == 1) && (s2 == 0) ? 1 :
+               (s1 == 0) && (s2 == 1) ? 0 :
+               (s1 == 0) && (e1 < e2) ? 1 :
+               (s1 == 0) && (e1 == e2) && (m1 < m2) ? 1 :
+               (s1 == 1) && (e1 > e2) ? 1 :
+               (s1 == 1) && (e1 == e2) && (m1 > m2) ? 1 :
+               0;
     }
-    static uint32_t fle(float x, float y)
+    static uint32_t fle(uint32_t x, uint32_t y)
     {
-        if (x == 0.0 && y == -0.0)
-            return 0;
-        else if (x == -0.0 && y == 0.0)
-            return 1;
-        else if (x <= y)
-            return 1;
-        else
-            return 0;
+        return flt(y, x) ? 0 : 1;
     }
     static uint32_t float2int(float x)
     {

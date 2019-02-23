@@ -1037,8 +1037,8 @@ class Core
 
     void feq(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
         r->set_ireg(d->rd(), FPU::feq(x, y));
         (stat->feq.stat)++;
         disasm->type = "fr";
@@ -1049,8 +1049,8 @@ class Core
     }
     void flt(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
         r->set_ireg(d->rd(), FPU::flt(x, y));
         (stat->flt.stat)++;
         disasm->type = "fr";
@@ -1061,8 +1061,8 @@ class Core
     }
     void fle(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
         r->set_ireg(d->rd(), FPU::fle(x, y));
         (stat->fle.stat)++;
         disasm->type = "fr";
