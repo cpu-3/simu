@@ -1283,18 +1283,19 @@ class Core
             uint32_t ip = r->ip;
             Decoder d = Decoder(m->get_inst(ip));
             run(&d);
-            inst_count++;
             if (inst_count < settings->wait)
             {
+                inst_count++;
                 continue;
             }
             if (settings->show_inst_value)
             {
                 printf("inst_count: %llx\n", inst_count);
-                printf("ip: %x\n", ip);
+                printf("ip: %x\n", ip / 4);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
             }
+            inst_count++;
             if (settings->show_registers)
             {
                 r->info();
