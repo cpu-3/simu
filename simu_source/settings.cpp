@@ -39,7 +39,7 @@ class Settings
         show_inst_value = false;
         show_io = false;
         hide_error_dump = false;
-        ip = x;
+        ip = x * 4;
         wait = y;
 
         if (filename != std::string(""))

@@ -1,203 +1,3 @@
-
-int min(int x, int y)
-{
-    return x < y ? x : y;
-}
-
-int max(int x, int y)
-{
-    return x > y ? x : y;
-}
-
-class ALU
-{
-  public:
-    static uint32_t add(uint32_t x, uint32_t y)
-    {
-        return x + y;
-    }
-    static uint32_t sub(uint32_t x, uint32_t y)
-    {
-        return x - y;
-    }
-    static uint32_t sll(uint32_t x, uint32_t y)
-    {
-        return x << (y & 0b11111);
-    }
-    static uint32_t srl(uint32_t x, uint32_t y)
-    {
-        return x >> (y & 0b11111);
-    }
-    static uint32_t sra(uint32_t x, uint32_t y)
-    {
-        int32_t a = (int32_t)x;
-        return (uint32_t)(x >> (y & 0b11111));
-    }
-    static uint32_t slt(uint32_t x, uint32_t y)
-    {
-        int32_t a = (int32_t)x;
-        int32_t b = (int32_t)y;
-        return a > b;
-    }
-    static uint32_t sltu(uint32_t x, uint32_t y)
-    {
-        return x > y;
-    }
-    static uint32_t and_(uint32_t x, uint32_t y)
-    {
-        return x & y;
-    }
-    static uint32_t or_(uint32_t x, uint32_t y)
-    {
-        return x | y;
-    }
-    static uint32_t xor_(uint32_t x, uint32_t y)
-    {
-        return x ^ y;
-    }
-};
-
-class Predict
-{
-    unsigned int long long count;
-    unsigned int long long correct;
-    virtual bool predict(Register *r, bool do_branch) = 0;
-    virtual const char *name() = 0;
-
-  public:
-    Predict() : count(0), correct(0) {}
-
-    void is_branch(Register *r, bool do_branch)
-    {
-        count++;
-        bool p = predict(r, do_branch);
-        if (p == do_branch)
-            correct++;
-    }
-
-    void result()
-    {
-        printf("[predict: %s] %llu / %llu: %lf\n", name(), correct, count, (double)correct / (double)count);
-    }
-};
-
-class TwoBit : public Predict
-{
-    int state;
-    virtual const char *name()
-    {
-        return "TwoBit Predicator";
-    }
-    virtual bool predict(Register *r, bool do_branch)
-    {
-        bool p = state <= 1 ? false : true;
-        if (do_branch)
-            state = min(state + 1, 3);
-        else
-            state = max(state - 1, 0);
-        return p;
-    }
-
-  public:
-    TwoBit() : state(0), Predict() {}
-};
-
-class GShare : public Predict
-{
-    unsigned history;
-    static const unsigned pc_len = 14;
-    static const unsigned his_len = 12;
-    static const int K = pc_len > his_len ? pc_len : his_len;
-    int table[1 << K];
-
-    virtual const char *name()
-    {
-        return "GShare Predictor";
-    }
-
-    unsigned
-    masked_pc(unsigned pc)
-    {
-        return pc & ((1 << pc_len) - 1);
-    }
-
-    unsigned update_history(bool do_branch)
-    {
-        return ((history << 1) | (do_branch ? 1 : 0)) & ((1 << his_len) - 1);
-    }
-    virtual bool predict(Register *r, bool do_branch)
-    {
-        if (history >= (1 << his_len))
-            printf("fail history: %d\n", history);
-
-        unsigned index = masked_pc(r->ip >> 2) ^ history;
-        int state = table[index];
-
-        if (state < 0 || 3 < state)
-            printf("fail state: %d\n", state);
-
-        bool predict = table[index] <= 1 ? false : true;
-        if (do_branch)
-            table[index] = min(state + 1, 3);
-        else
-            table[index] = max(state - 1, 0);
-
-        history = update_history(do_branch);
-        return predict;
-    }
-
-  public:
-    GShare() : Predict()
-    {
-        for (int i = 0; i < 1 << K; i++)
-            table[i] = 1;
-    }
-};
-
-class LocalHistory2Lev : public Predict
-{
-    static const unsigned K = 4;
-    int histories[1 << K];
-    static const unsigned H = 4;
-    int table[1 << H];
-
-    virtual const char *name()
-    {
-        return "LocalHistory2Lev";
-    }
-
-    unsigned
-    masked_pc(unsigned pc)
-    {
-        return pc & ((1 << K) - 1);
-    }
-    virtual bool predict(Register *r, bool do_branch)
-    {
-        int index = masked_pc(r->ip);
-        int history = histories[index];
-        if ((history >= (1 << H)) || history < 0)
-            printf("fail %d\n", history);
-        int state = table[history];
-        bool p = state <= 1 ? false : true;
-
-        histories[index] = ((history << 1) | do_branch) & ((1 << K) - 1);
-        if (do_branch)
-            table[history] = min(state + 1, 3);
-        else
-            table[history] = max(state - 1, 0);
-        return p;
-    }
-
-  public:
-    LocalHistory2Lev() : Predict()
-    {
-        for (int i = 0; i < 1 << H; i++)
-            table[i] = 1;
-        for (int i = 0; i < 1 << K; i++)
-            histories[i] = 0;
-    }
-};
-
 class Core
 {
     const uint32_t instruction_load_address = 0;
@@ -208,7 +8,6 @@ class Core
     IO *io;
     Stat *stat;
     Disasm *disasm;
-    Predict *predict;
 
     Settings *settings;
 
@@ -263,7 +62,6 @@ class Core
 
     void branch_inner(Decoder *d, int flag)
     {
-        predict->is_branch(r, flag);
         if (flag)
         {
             r->ip = (int32_t)r->ip + d->b_type_imm();
@@ -1234,7 +1032,6 @@ class Core
         m = new Memory(io);
         stat = new Stat;
         disasm = new Disasm;
-        predict = new GShare;
 
         this->settings = settings;
 
@@ -1256,7 +1053,6 @@ class Core
         delete io;
         delete stat;
         delete disasm;
-        delete predict;
     }
     void show_stack_from_top()
     {
@@ -1268,10 +1064,9 @@ class Core
         if (!settings->hide_error_dump)
         {
             r->info();
-            printf("inst_count: %llx\n", inst_count);
+            printf("inst_count: %lld\n", inst_count);
             show_stack_from_top();
             io->show_status();
-            predict->result();
             stat->show_stats();
         }
     }
@@ -1290,8 +1085,8 @@ class Core
             }
             if (settings->show_inst_value)
             {
-                printf("inst_count: %llx\n", inst_count);
-                printf("ip: %x\n", ip / 4);
+                printf("inst_count: %lld\n", inst_count);
+                printf("ip: %d\n", ip / 4);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
             }

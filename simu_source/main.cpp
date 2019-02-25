@@ -16,6 +16,7 @@
 #include "io.cpp"
 #include "reg_mem.cpp"
 #include "fpu.cpp"
+#include "alu.cpp"
 #include "disasm.cpp"
 #include "core.cpp"
 

@@ -186,7 +186,6 @@ class Memory
     }
 
     // set instructions to memory
-    // inst_memが満杯になって死ぬとかないのかな(wakarazu)
     void mmap(uint32_t addr, uint8_t *data, uint32_t length)
     {
         addr_alignment_check(addr);
