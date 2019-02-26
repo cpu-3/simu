@@ -975,9 +975,9 @@ class Core
 
     void _fsgnj(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
-        r->set_freg(d->rd(), x * y > 0 ? x : -x);
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fsgnj(x, y));
         (stat->fsgnj.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "fsgnj";
@@ -987,12 +987,25 @@ class Core
     }
     void fsgnjn(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
-        r->set_freg(d->rd(), x * y > 0 ? -x : x);
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fsgnjn(x, y));
         (stat->fsgnjn.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "fsgnjn";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
+    }
+
+    void fsgnjx(Decoder *d)
+    {
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fsgnjx(x, y));
+        (stat->fsgnjn.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fsgnjx";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
@@ -1008,7 +1021,7 @@ class Core
         {
             error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
         }
-        float x = r->get_freg(d->rs1());
+        uint32_t x = r->get_freg_raw(d->rs1());
         r->set_ireg(d->rd(), FPU::float2int(x));
         (stat->fcvt_w_s.stat)++;
         disasm->type = "fR";
@@ -1027,7 +1040,7 @@ class Core
             error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
         }
         uint32_t x = r->get_ireg(d->rs1());
-        r->set_freg(d->rd(), FPU::int2float(x));
+        r->set_freg_raw(d->rd(), FPU::int2float(x));
         (stat->fcvt_s_w.stat)++;
         disasm->type = "fR";
         disasm->inst_name = "fcvt_s_w";
@@ -1111,6 +1124,8 @@ class Core
             fsgnjn(d);
             break;
         case FSgnj_Inst::FSGNJX:
+            fsgnjx(d);
+            break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
