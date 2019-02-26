@@ -238,7 +238,7 @@ class Core
     void jal(Decoder *d)
     {
         int32_t imm = d->jal_imm();
-        r->set_ireg(d->rd(), r->ip + 4);
+        r->set_ireg(d->rd(), r->ip + 1);
         r->ip = (int32_t)r->ip + imm;
         (stat->jal.stat)++;
         disasm->type = "j";
@@ -251,7 +251,7 @@ class Core
         // sign extended
         int32_t imm = d->i_type_imm();
         int32_t s = r->get_ireg(d->rs1());
-        r->set_ireg(d->rd(), r->ip + 4);
+        r->set_ireg(d->rd(), r->ip + 1);
         r->ip = s + imm;
         (stat->jalr.stat)++;
         disasm->type = "i";
@@ -270,7 +270,7 @@ class Core
         }
         else
         {
-            r->ip += 4;
+            r->ip += 1;
         }
     }
     void beq(Decoder *d)
@@ -373,8 +373,6 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
-        if (addr == 0x212e4)
-            m->show_data(0x212e4, 4);
         uint32_t val = m->read_mem_4(addr);
         r->set_ireg(d->rd(), val);
         (stat->lw.stat)++;
@@ -735,7 +733,7 @@ class Core
             break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -755,7 +753,7 @@ class Core
             break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -1094,7 +1092,7 @@ class Core
             break;
         default:
             error_dump("widthがおかしいです(仕様書p112): %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -1108,7 +1106,7 @@ class Core
             break;
         default:
             error_dump("widthがおかしいです(仕様書p112): %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -1191,11 +1189,11 @@ class Core
         {
         case Inst::LUI:
             lui(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::AUIPC:
             auipc(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::JAL:
             jal(d);
@@ -1208,35 +1206,35 @@ class Core
             break;
         case Inst::LOAD:
             load(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::STORE:
             store(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::ALUI:
             alui(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::ALU:
             alu(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::FLOAD:
             fload(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::FSTORE:
             fstore(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::FPU:
             fpu(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         default:
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -1284,7 +1282,7 @@ class Core
         {
             r->info();
             printf("inst_count: %llx\n", inst_count);
-            show_stack_from_top();
+            //show_stack_from_top();
             io->show_status();
             predict->result();
             stat->show_stats();
@@ -1306,7 +1304,7 @@ class Core
             if (settings->show_inst_value)
             {
                 printf("inst_count: %llx\n", inst_count);
-                printf("ip: %x\n", ip / 4);
+                printf("ip: %x\n", ip);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
             }
