@@ -313,7 +313,6 @@ class Register
     {
         std::cout << "iRegister: " << std::endl;
         std::cout << std::hex;
-        std::cout << "ip: " << ip << std::endl;
         for (int i = 0; i < ireg_size; i++)
         {
             std::cout << std::dec << "x" << i << std::hex << ": " << i_registers[i] << " ";
