@@ -1,4 +1,5 @@
 #include "fpu_const.h"
+
 // get val's [l, r] bit value
 // ex) bit_range(00010011, 7, 1) -> 00010011
 uint32_t bit_range(uint32_t val, int l, int r)
@@ -18,93 +19,6 @@ uint32_t bit_reverse(uint32_t val, int bitsize)
     val = ~val;
     return bit_range(val, bitsize, 1);
 }
-
-void char_uint_cpy(uint32_t *c, char *x, int bit_size)
-{
-    int i = 0;
-    while (x[i] != '\0')
-    {
-        if (x[i] == '1')
-        {
-            *c |= 1 << (bit_size - 1 - i);
-        }
-        i++;
-    }
-}
-/*
-uint32_t map(uint32_t mh)
-{
-    switch (mh)
-    {
-    case 0b00000:
-        return 0b01111110;
-    case 0b00001:
-        return 0b01111010;
-    case 0b00010:
-        return 0b01110111;
-    case 0b00011:
-        return 0b01110011;
-    case 0b00100:
-        return 0b01110000;
-    case 0b00101:
-        return 0b01101101;
-    case 0b00110:
-        return 0b01101010;
-    case 0b00111:
-        return 0b01101000;
-    case 0b01000:
-        return 0b01100101;
-    case 0b01001:
-        return 0b01100011;
-    case 0b01010:
-        return 0b01100000;
-    case 0b01011:
-        return 0b01011110;
-    case 0b01100:
-        return 0b01011100;
-    case 0b01101:
-        return 0b01011010;
-    case 0b01110:
-        return 0b01011000;
-    case 0b01111:
-        return 0b01010110;
-    case 0b10000:
-        return 0b01010100;
-    case 0b10001:
-        return 0b01010011;
-    case 0b10010:
-        return 0b01010001;
-    case 0b10011:
-        return 0b01010000;
-    case 0b10100:
-        return 0b01001110;
-    case 0b10101:
-        return 0b01001101;
-    case 0b10110:
-        return 0b01001011;
-    case 0b10111:
-        return 0b01001010;
-    case 0b11000:
-        return 0b01001000;
-    case 0b11001:
-        return 0b01000111;
-    case 0b11010:
-        return 0b01000110;
-    case 0b11011:
-        return 0b01000101;
-    case 0b11100:
-        return 0b01000100;
-    case 0b11101:
-        return 0b01000011;
-    case 0b11110:
-        return 0b01000010;
-    case 0b11111:
-        return 0b01000001;
-    default:
-        return 0b0;
-    }
-}
-*/
 
 class FPU
 {
@@ -149,9 +63,7 @@ class FPU
         uint32_t sub = s1 ^ s2;                                        //8bit
         uint32_t inonzero = (ei != 0) & (bit_range(ediff, 8, 6) == 0); //1bit
 
-        //esr = es;
-        //msr = ms;
-        //mir = mia;
+        //esr = es; msr = ms; mir = mia;
 
         uint32_t calc; //27bit
         if (sub)
@@ -589,13 +501,16 @@ class FPU
         return fmul(x1, finv(x2));
     }
 
+    //fpu/fsqrt (not fsqrt2)
+    //not used
     static uint32_t fsqrt(uint32_t x)
     {
         using namespace std;
-        uint32_t s = bit_range(x, 32, 32);     //1bit
-        uint32_t e = bit_range(x, 31, 25);     //7bit
-        uint32_t index = bit_range(x, 24, 15); //10bit
-        uint32_t a = bit_range(x, 14, 1);      //14bit
+        uint32_t s = bit_range(x, 32, 32);                     //1bit
+        uint32_t e = bit_range(x, 31, 25);                     //7bit
+        uint32_t index = bit_range(x, 24, 15);                 //10bit
+        uint32_t a = bit_range(x, 14, 1);                      //14bit
+        uint32_t d = bit_reverse(bit_range(index, 10, 10), 1); //1bit
 
         uint32_t c = fpu_sqrt_c[index];                                                                                //23bit
         uint32_t g = fpu_sqrt_g[index];                                                                                //13bit
@@ -692,7 +607,8 @@ class FPU
 
         return y;
     }
-    static uint32_t int2float(uint32_t x)
+
+  static uint32_t int2float(uint32_t x)
     {
         using namespace std;
         uint32_t s = bit_range(x, 32, 32); //1bit

@@ -187,7 +187,6 @@ class Memory
     }
 
     // set instructions to memory
-    // inst_memが満杯になって死ぬとかないのかな(wakarazu)
     void mmap(uint32_t addr, uint8_t *data, uint32_t length)
     {
         addr_alignment_check(addr);
@@ -315,7 +314,6 @@ class Register
     {
         std::cout << "iRegister: " << std::endl;
         std::cout << std::hex;
-        std::cout << "ip: " << ip << std::endl;
         for (int i = 0; i < ireg_size; i++)
         {
             std::cout << std::dec << "x" << i << std::hex << ": " << i_registers[i] << " ";
