@@ -37,7 +37,7 @@ class Core
     void jal(Decoder *d)
     {
         int32_t imm = d->jal_imm();
-        r->set_ireg(d->rd(), r->ip + 4);
+        r->set_ireg(d->rd(), r->ip + 1);
         r->ip = (int32_t)r->ip + imm;
         (stat->jal.stat)++;
         disasm->type = "j";
@@ -50,7 +50,7 @@ class Core
         // sign extended
         int32_t imm = d->i_type_imm();
         int32_t s = r->get_ireg(d->rs1());
-        r->set_ireg(d->rd(), r->ip + 4);
+        r->set_ireg(d->rd(), r->ip + 1);
         r->ip = s + imm;
         (stat->jalr.stat)++;
         disasm->type = "i";
@@ -68,7 +68,7 @@ class Core
         }
         else
         {
-            r->ip += 4;
+            r->ip += 1;
         }
     }
     void beq(Decoder *d)
@@ -171,8 +171,6 @@ class Core
         offset <<= 20;
         offset >>= 20;
         uint32_t addr = base + offset;
-        if (addr == 0x212e4)
-            m->show_data(0x212e4, 4);
         uint32_t val = m->read_mem_4(addr);
         r->set_ireg(d->rd(), val);
         (stat->lw.stat)++;
@@ -533,7 +531,7 @@ class Core
             break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -553,7 +551,7 @@ class Core
             break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -773,9 +771,9 @@ class Core
 
     void _fsgnj(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
-        r->set_freg(d->rd(), x * y > 0 ? x : -x);
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fsgnj(x, y));
         (stat->fsgnj.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "fsgnj";
@@ -785,12 +783,25 @@ class Core
     }
     void fsgnjn(Decoder *d)
     {
-        float x = r->get_freg(d->rs1());
-        float y = r->get_freg(d->rs2());
-        r->set_freg(d->rd(), x * y > 0 ? -x : x);
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fsgnjn(x, y));
         (stat->fsgnjn.stat)++;
         disasm->type = "fr";
         disasm->inst_name = "fsgnjn";
+        disasm->dest = d->rd();
+        disasm->src1 = d->rs1();
+        disasm->src2 = d->rs2();
+    }
+
+    void fsgnjx(Decoder *d)
+    {
+        uint32_t x = r->get_freg_raw(d->rs1());
+        uint32_t y = r->get_freg_raw(d->rs2());
+        r->set_freg_raw(d->rd(), FPU::fsgnjx(x, y));
+        (stat->fsgnjn.stat)++;
+        disasm->type = "fr";
+        disasm->inst_name = "fsgnjx";
         disasm->dest = d->rd();
         disasm->src1 = d->rs1();
         disasm->src2 = d->rs2();
@@ -806,7 +817,7 @@ class Core
         {
             error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
         }
-        float x = r->get_freg(d->rs1());
+        uint32_t x = r->get_freg_raw(d->rs1());
         r->set_ireg(d->rd(), FPU::float2int(x));
         (stat->fcvt_w_s.stat)++;
         disasm->type = "fR";
@@ -825,7 +836,7 @@ class Core
             error_dump("命令フォーマットがおかしいです(fcvt_w_sではrs2()は0になる)\n");
         }
         uint32_t x = r->get_ireg(d->rs1());
-        r->set_freg(d->rd(), FPU::int2float(x));
+        r->set_freg_raw(d->rd(), FPU::int2float(x));
         (stat->fcvt_s_w.stat)++;
         disasm->type = "fR";
         disasm->inst_name = "fcvt_s_w";
@@ -879,7 +890,7 @@ class Core
             break;
         default:
             error_dump("widthがおかしいです(仕様書p112): %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -893,7 +904,7 @@ class Core
             break;
         default:
             error_dump("widthがおかしいです(仕様書p112): %x\n", d->funct3());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -909,6 +920,8 @@ class Core
             fsgnjn(d);
             break;
         case FSgnj_Inst::FSGNJX:
+            fsgnjx(d);
+            break;
         default:
             error_dump("対応していないfunct3が使用されました: %x\n", d->funct3());
         }
@@ -974,11 +987,11 @@ class Core
         {
         case Inst::LUI:
             lui(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::AUIPC:
             auipc(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::JAL:
             jal(d);
@@ -991,35 +1004,35 @@ class Core
             break;
         case Inst::LOAD:
             load(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::STORE:
             store(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::ALUI:
             alui(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::ALU:
             alu(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::FLOAD:
             fload(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::FSTORE:
             fstore(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         case Inst::FPU:
             fpu(d);
-            r->ip += 4;
+            r->ip += 1;
             break;
         default:
             error_dump("対応していないopcodeが使用されました: %x\n", d->opcode());
-            r->ip += 4;
+            r->ip += 1;
             break;
         }
     }
@@ -1064,8 +1077,7 @@ class Core
         if (!settings->hide_error_dump)
         {
             r->info();
-            printf("inst_count: %lld\n", inst_count);
-            show_stack_from_top();
+            printf("inst_count: %llx\n", inst_count);
             io->show_status();
             stat->show_stats();
         }
@@ -1085,8 +1097,8 @@ class Core
             }
             if (settings->show_inst_value)
             {
-                printf("inst_count: %lld\n", inst_count);
-                printf("ip: %d\n", ip / 4);
+                printf("inst_count: %llx\n", inst_count);
+                printf("ip: %x\n", ip * 4);
                 std::cout << "inst: " << std::bitset<32>(d.code) << std::endl;
                 disasm->print_inst(disasm->type);
             }

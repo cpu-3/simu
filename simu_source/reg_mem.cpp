@@ -32,20 +32,14 @@ class Memory
 
     void data_mem_check(uint32_t addr, uint8_t size)
     {
-        addr_alignment_check(addr);
-        if (addr + size >= memory_lim || addr + size <= IO_mem_lim)
+        if (addr + 4 > memory_size)
         {
-            error_dump("多分不正なデータアドレスに書き込もうとしました: %x\n", addr);
+            error_dump("多分不正なアドレスにアクセスしようとしました: %x\n", addr);
         }
     }
 
     void read_mem_check(uint32_t addr, uint8_t size)
     {
-        addr_alignment_check(addr);
-        if (addr + size >= memory_lim)
-        {
-            error_dump("多分不正なデータアドレスを読もうとしました: %x\n", addr);
-        }
     }
 
     void inst_mem_check(uint32_t addr)
@@ -59,7 +53,7 @@ class Memory
 
     void map_mem_check(uint32_t addr, uint32_t size)
     {
-        if ((addr + size) >= memory_lim)
+        if ((addr + size) >= memory_size)
         {
             error_dump("多分不正なアドレスにアクセスしようとしました: %x\n", addr);
         }
@@ -116,6 +110,7 @@ class Memory
 
     void write_mem(uint32_t addr, uint8_t val)
     {
+        addr *= 4;
         if (!hook_io_write(addr, val))
         {
             data_mem_check(addr, 1);
@@ -125,6 +120,7 @@ class Memory
 
     void write_mem(uint32_t addr, uint16_t val)
     {
+        addr *= 4;
         if (!hook_io_write(addr, val))
         {
             data_mem_check(addr, 2);
@@ -135,6 +131,7 @@ class Memory
 
     void write_mem(uint32_t addr, uint32_t val)
     {
+        addr *= 4;
         if (!hook_io_write(addr, val))
         {
             data_mem_check(addr, 4);
@@ -145,6 +142,7 @@ class Memory
 
     uint8_t read_mem_1(uint32_t addr)
     {
+        addr *= 4;
         uint8_t v;
         if (hook_io_read(addr, &v))
         {
@@ -156,6 +154,7 @@ class Memory
 
     uint16_t read_mem_2(uint32_t addr)
     {
+        addr *= 4;
         uint8_t v;
         if (hook_io_read(addr, &v))
         {
@@ -168,6 +167,7 @@ class Memory
 
     uint32_t read_mem_4(uint32_t addr)
     {
+        addr *= 4;
         uint8_t v;
         if (hook_io_read(addr, &v))
         {
@@ -180,6 +180,7 @@ class Memory
 
     uint32_t get_inst(uint32_t addr)
     {
+        addr *= 4;
         inst_mem_check(addr);
         uint32_t *m = (uint32_t *)memory;
         return m[addr / 4];

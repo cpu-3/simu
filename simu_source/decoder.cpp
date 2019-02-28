@@ -67,10 +67,10 @@ class Decoder
     }
     int32_t b_type_imm()
     {
-        int32_t ret = (bit_range(code, 32, 32) << 12) +
-                      (bit_range(code, 8, 8) << 11) +
-                      (bit_range(code, 31, 26) << 5) +
-                      (bit_range(code, 12, 9) << 1);
+        int32_t ret = (bit_range(code, 32, 32) << 11) +
+                      (bit_range(code, 8, 8) << 10) +
+                      (bit_range(code, 31, 26) << 4) +
+                      (bit_range(code, 12, 9));
         ret <<= 20;
         ret >>= 20;
         return ret;
@@ -78,13 +78,12 @@ class Decoder
     int32_t jal_imm()
     {
         // sign extended
-        int32_t ret = (bit_range(code, 32, 32) << 20) +
-                      (bit_range(code, 20, 13) << 12) +
-                      (bit_range(code, 21, 21) << 11) +
-                      (bit_range(code, 31, 22) << 1);
-        ret <<= 11;
-        ret >>= 11;
+        int32_t ret = (bit_range(code, 32, 32) << 19) +
+                      (bit_range(code, 20, 13) << 11) +
+                      (bit_range(code, 21, 21) << 10) +
+                      (bit_range(code, 31, 22));
+        ret <<= 12;
+        ret >>= 12;
         return ret;
     }
 };
-
